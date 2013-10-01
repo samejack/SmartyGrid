@@ -375,6 +375,7 @@ jQuery.fn.smartyGrid = function(args, params) {
 
             // save config
             $(this).data('SMARTY_GRID_CONFIG', config);
+            $(this).data('SMARTY_GRID_DEFAULT_CONFIG', jQuery.extend(true, {}, config));
 
             // display header
             this.renderHeader();
@@ -393,6 +394,9 @@ jQuery.fn.smartyGrid = function(args, params) {
                 $(this).data('SMARTY_GRID_CONFIG').searchKeyword = params;
                 this.render(1);
             }
+        } else if (typeof(args) === 'string' && args === 'reset') {
+            $(this).data('SMARTY_GRID_CONFIG', $(this).data('SMARTY_GRID_DEFAULT_CONFIG'));
+            window.location.hash = '';
         } else if (typeof(args) === 'string' && args === 'setparams') {
             // set extension ajax params
             var config = $(this).data('SMARTY_GRID_CONFIG');
