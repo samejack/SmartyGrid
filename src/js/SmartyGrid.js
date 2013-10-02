@@ -169,7 +169,7 @@ jQuery.fn.smartyGrid = function(args, params) {
             } else {
                 html += '<td>';
             }
-            html += '<input type="checkbox" name="' + name + '[]" value="' + value + '" class="smarty-grid-checkbox" id="_' + name + '_' + index + '" /></td>';
+            html += '<input type="checkbox" name="' + name + '[]" value="' + value + '" class="smarty-grid-checkbox smarty-grid-row-' + index + '" /></td>';
             return html;
         };
 
@@ -182,7 +182,12 @@ jQuery.fn.smartyGrid = function(args, params) {
                 for (j in columns) {
                     value = model[i][columns[j].index];
                     if (columns[j].title === 'CHECKBOX') {
-                        html += this.renderCheckbox(value, model[i], columns[j], i);
+                        if (columns[j].render !== undefined && typeof(columns[j].render) === 'function') {
+                            html += columns[j].render(value, model[i], columns[j], i);
+                            continue;
+                        } else {
+                            html += this.renderCheckbox(value, model[i], columns[j], i);
+                        }
                     } else if (columns[j].title === 'HIDDEN') {
                         continue;
                     } else if (model[i][columns[j].index] !== undefined) {
