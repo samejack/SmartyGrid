@@ -119,8 +119,8 @@ jQuery.fn.smartyGrid = function(args, params) {
                 //display middel button
                 start = first;
                 end = last;
-                if (Math.ceil(config.total/config.pagesize)>config.delta) {
-                    if (config.pagecode-Math.ceil(config.delta/2)<first) {
+                if (Math.ceil(config.total / config.pagesize)>config.delta) {
+                    if (config.pagecode - Math.ceil(config.delta / 2)<first) {
                         end = config.delta;
                     } else if ((config.pagecode + Math.ceil(config.delta / 2) - 1) > last ) {
                         start = last - config.delta + 1;
@@ -142,7 +142,7 @@ jQuery.fn.smartyGrid = function(args, params) {
                     html += '<li class="active"><a href="javascript:void(0);">&raquo;</a></li>';
                     html += '<li class="active"><a href="javascript:void(0);">&raquo;&#124;</a></li>';
                 }else{
-                    html += '<li class="disabled"><a href="javascript:void(0);" rel="' + (config.pagecode+1) + '">&raquo;</a></li>';
+                    html += '<li class="disabled"><a href="javascript:void(0);" rel="' + (config.pagecode + 1) + '">&raquo;</a></li>';
                     html += '<li class="disabled"><a href="javascript:void(0);" rel="' + last + '">&raquo;&#124;</a></li>';
                 }
 
@@ -174,27 +174,45 @@ jQuery.fn.smartyGrid = function(args, params) {
         };
 
         this.renderRows = function(config, model){
-            var columns = config.columns, html, value, i, j, self = this;
+            var columns = config.columns, html = '', value, i, j, k, self = this;
             $(this).find('tbody').children().remove();
 
             for (i in model) {
                 html = config.tableBodyTrHtml;
                 for (j in columns) {
-                    value = model[i][columns[j].index];
+                    // make column value
+                    if (typeof(columns[j].index) === 'object') {
+                        // complex index
+                        value = [];
+                        for (k in columns[j].index) {
+                            value[columns[j].index[k]] = model[i][columns[j].index[k]];
+                        }
+                    } else {
+                        // non-complex index
+                        value = model[i][columns[j].index];
+                    }
+
                     if (columns[j].title === 'CHECKBOX') {
+                        // render check box
                         if (columns[j].render !== undefined && typeof(columns[j].render) === 'function') {
                             html += columns[j].render(value, model[i], columns[j], i);
                             continue;
                         } else {
+                            // fix value to string
+                            if (typeof(value) === 'object') {
+                                value = value.join(', ');
+                            }
                             html += this.renderCheckbox(value, model[i], columns[j], i);
                         }
-                    } else if (columns[j].title === 'HIDDEN') {
-                        continue;
-                    } else if (model[i][columns[j].index] !== undefined) {
+                    } else if (columns[j].index !== undefined) {
                         if (columns[j].render !== undefined && typeof(columns[j].render) === 'function') {
                             html += columns[j].render(value, model[i], columns[j], i);
                             continue;
                         } else {
+                            // fix value to string
+                            if (typeof(value) === 'object') {
+                                value = value.join(', ');
+                            }
                             html += config.tableBodyTdHtml + value + '</td>'
                         }
                     } else {
@@ -215,11 +233,11 @@ jQuery.fn.smartyGrid = function(args, params) {
 
         this.render = function(pagecode){
             //load configuration
-            var config = $(this).data('SMARTY_GRID_CONFIG'), uri = config.uri, parent = this, offset = 0, queryString, i = null, data;
+            var config = $(this).data('SMARTY_GRID_CONFIG'), uri = config.uri, parent = this, offset = 0, queryString, i = null, j = null, data;
 
             // check page code
             pagecode = parseInt(pagecode, 10);
-            if (typeof(config.total) !== 'undefined' &&
+            if (config.total !== undefined && config.total !== 0 &&
                     (typeof(pagecode) === 'undefined' || pagecode <= 0 || pagecode > (Math.ceil(config.total / config.pagesize)))) {
                 console.warn('pagecode error: ' + pagecode);
                 return;
@@ -246,8 +264,18 @@ jQuery.fn.smartyGrid = function(args, params) {
             // make columns
             queryObject.columns = [];
             for (i in config.columns) {
-                if (queryObject.columns.lastIndexOf(config.columns[i].index) === -1) {
-                    queryObject.columns.push(config.columns[i].index);
+                if (typeof(config.columns[i].index) === 'object') {
+                    // complex index
+                    for (j in config.columns[i].index) {
+                        if (queryObject.columns.lastIndexOf(config.columns[i].index[j]) === -1) {
+                            queryObject.columns.push(config.columns[i].index[j]);
+                        }
+                    }
+                } else {
+                    // non-complex index
+                    if (queryObject.columns.lastIndexOf(config.columns[i].index) === -1) {
+                        queryObject.columns.push(config.columns[i].index);
+                    }
                 }
             }
 
@@ -260,7 +288,7 @@ jQuery.fn.smartyGrid = function(args, params) {
 
             if (config.uri === undefined) {
                 // static data
-                config.total = config.data.length;
+                config.total = parseInt(config.data.length, 10);
 
                 // page process
                 data = [];
@@ -270,13 +298,11 @@ jQuery.fn.smartyGrid = function(args, params) {
                     }
                 }
 
-                // TODO sort, search
-
                 this.renderRows(config, data);
                 this.renderPager(config);
 
                 if( typeof(config.afterRender)==='function' ){
-                    config.afterRender(parseInt(config.total, 10), parseInt(config.pagecode, 10), parseInt(config.pagesize, 10));
+                    config.afterRender(config.total, config.pagecode, config.pagesize);
                 }
             } else {
                 //call ajax to get data
@@ -297,12 +323,12 @@ jQuery.fn.smartyGrid = function(args, params) {
                         alert('SmartyGrid WebService data format error.');
                     } else {
                         //update total
-                        config.total = json.data.total;
+                        config.total = parseInt(json.data.total, 10);
                         //render pager
                         parent.renderRows(config, json.data.list);
                         parent.renderPager(config);
                         if( typeof(config.afterRender) === 'function' ){
-                            config.afterRender(parseInt(config.total, 10), parseInt(config.pagecode, 10), parseInt(config.pagesize, 10));
+                            config.afterRender(config.total, config.pagecode, config.pagesize);
                         }
                     }
                 });
