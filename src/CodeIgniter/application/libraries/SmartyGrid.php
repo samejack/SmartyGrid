@@ -52,6 +52,129 @@ class SmartyGrid
         return $this->_db;
     }
 
+    public function getGridDataBySqlQuery(array $allowColumns, $sqlQuery, CI_Input &$input)
+    {
+        // check column
+        foreach ($allowColumns as &$column) {
+            if ($column === '*') {
+                return array(
+                    'code' => 1,
+                    'message' => 'SmartyGrid: Configure can\'t use * column set.'
+                );
+            }
+        }
+
+        // 從 request 取參數
+        $size = intval($input->get_post('size'));
+        $offset = intval($input->get_post('offset'));
+        $search = $input->get_post('search');
+        $equals = $input->get_post('equals');
+        $sorts = $input->get_post('sorts');
+        $columns = $input->get_post('columns');
+
+        $queryPrepare = array();
+        
+        // 新增過濾欄位
+        $columnSql = '*';
+        $columns = array();
+        if (!is_null($columns) && is_array($columns)) {
+            // keyword search
+            foreach ($columns as &$column) {
+                if (in_array($column, $allowColumns)) {
+                    array_push($columns, $column);
+                }
+            }
+        }
+        if (count($columns) > 0) {
+            $columnSql = implode(', ', $columns);
+        }
+
+        // fix page
+        if (is_null($size) || $size === 0) {
+            $size = 20;
+        }
+        if (is_null($offset)) {
+            $offset = 0;
+        }
+
+        // Where condition
+        $whereSql = '';
+        // 新增搜尋條件
+        $whereConditions = array();
+        if (!is_null($search) && is_array($search)) {
+            // keyword search
+            foreach ($search as $column => &$keyword) {
+                if (in_array($column, $allowColumns)) {
+                    array_push($whereConditions, $column . ' LIKE ?');
+                    array_push($queryPrepare, '%' . $keyword . '%');
+                }
+            }
+        }
+        // 新增比對條件
+        if (!is_null($equals) && is_array($equals)) {
+            // keyword equal
+            foreach ($equals as $column => &$condition) {
+                if (in_array($column, $allowColumns)) {
+                    array_push($whereConditions, $column . ' = ?');
+                    array_push($queryPrepare, $keyword);
+                }
+            }
+        }
+        // fix where sql
+        if (count($whereConditions) > 0) {
+            $whereSql = 'WHERE ' . implode(' OR ', $whereConditions);
+        }
+
+        // 新增排序條件
+        $orderSql = '';
+        $orderConditions = array();
+        if (!is_null($sorts) && is_array($sorts)) {
+            foreach ($sorts as $column => $sortStyle) {
+                $sortStyle = strtoupper($sortStyle);
+                if (in_array($sortStyle, array('ASC', 'DESC')) && in_array($column, $allowColumns)) {
+                    array_push($orderConditions, $column . ' ' . $sortStyle);
+                }
+            }
+        }
+        // fix order sql
+        if (count($orderConditions) > 0) {
+            $orderSql = 'ORDER BY ' . implode(', ', $orderConditions);
+        }
+
+        $rows = $this->getDb()->query(
+            sprintf(
+                'SELECT %s FROM (%s) AS t %s %s LIMIT %d OFFSET %d',
+                $columnSql,
+                $sqlQuery,
+                $whereSql,
+                $orderSql,
+                $size,
+                $offset
+            ),
+            $queryPrepare
+        )->result();
+        log_message('debug', 'SmartyGrid->query: ' . $this->_db->last_query());
+
+        $count = $this->getDb()->query(
+            sprintf(
+                'SELECT COUNT(*) AS count FROM (%s) AS t %s',
+                $sqlQuery,
+                $whereSql
+            ),
+            $queryPrepare
+        )->result();
+        log_message('debug', 'SmartyGrid->query: ' . $this->_db->last_query());
+        
+        return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => array(
+                    'list' => $rows,
+                    'total' => $count[0]->count
+                )
+            );
+    }
+    
     /**
      * 取得每一張資料表的 SmartyGrid 結構資料，包含 table 與資料總筆數
      * 
@@ -162,7 +285,10 @@ class SmartyGrid
         $orders = null;
         if (!is_null($sorts) && is_array($sorts)) {
             foreach ($sorts as $column => $sortStyle) {
-                $query->order_by($column, $sortStyle);
+                $sortStyle = strtoupper($sortStyle);
+                if (in_array($sortStyle, array('ASC', 'DESC'))) {
+                    $query->order_by($column, $sortStyle);
+                }
             }
         }
 
