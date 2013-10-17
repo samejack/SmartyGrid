@@ -351,7 +351,7 @@ jQuery.fn.smartyGrid = function(args, params) {
         };
 
         // 預設動作
-        if( typeof(args)==='object' ){
+        if (typeof(args) === 'object') {
             // update config
             var config = $(this).data('SMARTY_GRID_CONFIG'), i = null, hashObj;
             if (config === undefined || config === null) {
