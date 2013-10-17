@@ -52,6 +52,15 @@ class SmartyGrid
         return $this->_db;
     }
 
+    /**
+     * 利用 SQL 取得 SmartyGrid 結構資料，包含內容與資料總筆數
+     * 
+     * @param array $allowColumns 可以操作存取的欄位
+     * @param string $sqlQuery SQL Query 可使用 JOIN 與法
+     * @param CI_Input $input
+     * @throws Exception
+     * @return array 包含資料與總筆數
+     */
     public function getGridDataBySqlQuery(array $allowColumns, $sqlQuery, CI_Input &$input)
     {
         // check column
@@ -176,7 +185,7 @@ class SmartyGrid
     }
     
     /**
-     * 取得每一張資料表的 SmartyGrid 結構資料，包含 table 與資料總筆數
+     * 取得每一張資料表的 SmartyGrid 結構資料，包含內容與資料總筆數
      * 
      * @param array $allowColumns 可以操作存取的欄位
      * @param string $table 資料表名稱(可以使用 View)
