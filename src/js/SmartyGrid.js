@@ -5,12 +5,20 @@
  * @link https://github.com/smajeack/SmartyGrid
  * @copyright Copyright 2013 SJ
  * @version 1.0
- * @license Apache License Version 2.0 (https://github.com/smajeack/SmartyGrid/blob/master/LICENSE)
+ * @license Apache License Version 2.0 (https://github.com/samejack/SmartyGrid/blob/master/LICENSE)
  */
 jQuery.fn.smartyGrid = function(args, params) {
-    return this.each(function() {
+    return this.each(function () {
 
-        this.renderHeader = function(){
+        var self = this;
+
+        this.log = function (message) {
+            if (typeof(console.log) === 'function') {
+                console.log(message);
+            }
+        };
+
+        this.renderHeader = function() {
             var i = null, config = $(this).data('SMARTY_GRID_CONFIG'), columns = config.columns, html;
 
             // remove grid children and make header
@@ -174,7 +182,7 @@ jQuery.fn.smartyGrid = function(args, params) {
         };
 
         this.renderRows = function(config, model){
-            var columns = config.columns, html = '', value, i, j, k, self = this;
+            var columns = config.columns, html = '', value, i, j, k;
             $(this).find('tbody').children().remove();
 
             for (i in model) {
@@ -310,17 +318,19 @@ jQuery.fn.smartyGrid = function(args, params) {
                 //ajax call
                 $.getJSON(uri, queryObject, function (json) {
                     if (typeof(json) !== 'object') {
-                        alert('SmartyGrid WebService error: Return data not a JSON object.');
-                    } else if (json.code === undefined) {
-                        alert('SmartyGrid WebService format error. (code not found)');
-                    } else if (json.message === undefined) {
-                        alert('SmartyGrid WebService format error. (message not found)');
-                    } else if (json.data === undefined) {
-                        alert('SmartyGrid WebService format error. (data not found)');
+                        self.log('SmartyGrid WebService error: Return data not a JSON object.');
+                    } else if (typeof(json.code) === 'undefined') {
+                        self.log('SmartyGrid WebService format error. (code not found)');
                     } else if (json.code !== 0) {
-                        alert('SmartyGrid WebService error: ' + json.message + ' (' + json.code + ')');
-                    } else if (json.data.total === undefined || json.data.list === undefined) {
-                        alert('SmartyGrid WebService data format error.');
+                        if (typeof(config.ajaxErrorCallback) === 'function') {
+                            config.ajaxErrorCallback(json);
+                        }
+                    } else if (typeof(json.message) === 'undefined') {
+                        self.log('SmartyGrid WebService format error. (message not found)');
+                    } else if (typeof(json.data) === 'undefined') {
+                        self.log('SmartyGrid WebService format error. (data not found)');
+                    } else if (typeof(json.data.total) === 'undefined' || typeof(json.data.list) === 'undefined') {
+                        self.log('SmartyGrid WebService data format error.');
                     } else {
                         //update total
                         config.total = parseInt(json.data.total, 10);
@@ -372,6 +382,9 @@ jQuery.fn.smartyGrid = function(args, params) {
                     tableBodyTrHtml: '<tr>',
                     tableBodyTdHtml: '<td>',
                     sortField: undefined,
+                    ajaxErrorCallback: function (json) {
+                        self.log('SmartyGrid WebService error: ' + json.message + ' (' + json.code + ')');
+                    },
                     afterRender: function (total, pagecode, pagesize) {},
                     order: 'ASC',
                     searchFields: [],
