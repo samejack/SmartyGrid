@@ -6,7 +6,7 @@
  * @link https://github.com/smajeack/SmartyGrid
  * @copyright Copyright 2013 SJ
  * @version 1.0
- * @license Apache License Version 2.0 (https://github.com/smajeack/SmartyGrid/blob/master/LICENSE)
+ * @license Apache License Version 2.0 (https://github.com/samejack/SmartyGrid/blob/master/LICENSE)
  * @package \SmartyGrid
  */
 class SmartyGrid
