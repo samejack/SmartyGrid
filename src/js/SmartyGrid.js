@@ -71,26 +71,23 @@ jQuery.fn.smartyGrid = function(args, params) {
                     // bind sort event
                     if (columns[i].sortable) {
                         $(this).find('thead tr th:last').click(function(){
-                            var config = $(this).parents('table').parent().data('SMARTY_GRID_CONFIG'), toSortField = $(this).parent().children().index(this);
+                            var config = $(this).parents('table').parent().data('SMARTY_GRID_CONFIG'),
+                                toSortField = $(this).parent().children().index(this);
 
-                            if (typeof(config.sortField) !== 'undefined' && config.sortField === toSortField) {
-                                if (config.order==='ASC') {
-                                    config.order = 'DESC';
-                                } else {
-                                    config.order = 'ASC';
-                                }
-                            } else {
-                                config.sortField = toSortField;
-                            }
-
-                            // change sort icon
+                            // reset all sort icon
                             $(this).parent().find('.sort-icon').html(config.sortDefaultHtml);
 
-                            if (config.order === 'ASC') {
-                                $(this).find('.sort-icon').html(config.sortUpHtml);
-                            } else {
-                                $(this).find('.sort-icon').html(config.sortDownHtml);
+                            config.sortField = toSortField;
+                            if (typeof(config.sortField) !== 'undefined' && config.sortField === toSortField) {
+                                if (config.order === 'ASC') {
+                                    config.order = 'DESC';
+                                    $(this).find('.sort-icon').html(config.sortDownHtml);
+                                } else {
+                                    config.order = 'ASC';
+                                    $(this).find('.sort-icon').html(config.sortUpHtml);
+                                }
                             }
+
                             // render
                             $(this).parents('table').parent().smartyGrid('render');
                         });
@@ -105,7 +102,7 @@ jQuery.fn.smartyGrid = function(args, params) {
 
             $(this).find('.smarty-grid-pager').children().remove();
 
-            if (config.pager && typeof(config.total) !== 'undefined' && config.total > config.pagesize) {
+            if (config.pager && typeof(config.total) !== 'undefined') {
 
                 //fixed pagecode
                 if (config.pagecode > last) {
@@ -117,11 +114,11 @@ jQuery.fn.smartyGrid = function(args, params) {
 
                 //display first button
                 if (config.pagecode === first) {
-                    html += '<li class="active"><a href="javascript:void(0);">&#124;&laquo;</a></li>';
-                    html += '<li class="active"><a href="javascript:void(0);">&laquo;</a></li>';
+                    html += '<li><a href="javascript:void(0);">&#124;&laquo;</a></li>';
+                    html += '<li><a href="javascript:void(0);">&laquo;</a></li>';
                 }else{
-                    html += '<li class="disabled"><a href="javascript:void(0);" rel="' + first + '">&#124;&laquo;</a></li>';
-                    html += '<li class="disabled"><a href="javascript:void(0);" rel="' + (config.pagecode-1) + '">&laquo;</a></li>';
+                    html += '<li><a href="javascript:void(0);" rel="' + first + '">&#124;&laquo;</a></li>';
+                    html += '<li><a href="javascript:void(0);" rel="' + (config.pagecode-1) + '">&laquo;</a></li>';
                 }
 
                 //display middel button
@@ -147,11 +144,11 @@ jQuery.fn.smartyGrid = function(args, params) {
 
                 //display last button
                 if( config.pagecode === last ){
-                    html += '<li class="active"><a href="javascript:void(0);">&raquo;</a></li>';
-                    html += '<li class="active"><a href="javascript:void(0);">&raquo;&#124;</a></li>';
+                    html += '<li><a href="javascript:void(0);">&raquo;</a></li>';
+                    html += '<li><a href="javascript:void(0);">&raquo;&#124;</a></li>';
                 }else{
-                    html += '<li class="disabled"><a href="javascript:void(0);" rel="' + (config.pagecode + 1) + '">&raquo;</a></li>';
-                    html += '<li class="disabled"><a href="javascript:void(0);" rel="' + last + '">&raquo;&#124;</a></li>';
+                    html += '<li><a href="javascript:void(0);" rel="' + (config.pagecode + 1) + '">&raquo;</a></li>';
+                    html += '<li><a href="javascript:void(0);" rel="' + last + '">&raquo;&#124;</a></li>';
                 }
 
                 $(this).find('.smarty-grid-pager').append(html);
@@ -182,7 +179,7 @@ jQuery.fn.smartyGrid = function(args, params) {
         };
 
         this.renderRows = function(config, model){
-            var columns = config.columns, html = '', value, i, j, k;
+            var columns = config.columns, html = '', value, i, j, k, string = '', arr = [];
             $(this).find('tbody').children().remove();
 
             for (i in model) {
@@ -219,9 +216,15 @@ jQuery.fn.smartyGrid = function(args, params) {
                         } else {
                             // fix value to string
                             if (typeof(value) === 'object') {
-                                value = value.join(', ');
+                                arr = [];
+                                for (k in value) {
+                                    arr.push(value[k]);
+                                }
+                                string = arr.join(', ');
+                            } else {
+                                string = value;
                             }
-                            html += config.tableBodyTdHtml + value + '</td>'
+                            html += config.tableBodyTdHtml + string + '</td>'
                         }
                     } else {
                         html += config.tableBodyTdHtml + '</td>';
@@ -241,7 +244,7 @@ jQuery.fn.smartyGrid = function(args, params) {
 
         this.render = function(pagecode){
             //load configuration
-            var config = $(this).data('SMARTY_GRID_CONFIG'), uri = config.uri, parent = this, offset = 0, queryString, i = null, j = null, data;
+            var config = $(this).data('SMARTY_GRID_CONFIG'), uri = config.uri, parent = this, offset = 0, index = null, i = null, j = null, data, queryObject;
 
             // check page code
             pagecode = parseInt(pagecode, 10);
@@ -261,11 +264,18 @@ jQuery.fn.smartyGrid = function(args, params) {
             }
             if (typeof(config.sortField) !== 'undefined' && typeof(config.columns[config.sortField]) !== 'unedfined') {
                 queryObject.sorts = {};
-                queryObject.sorts[config.columns[config.sortField].index] = config.order;
+                if (typeof(config.columns[config.sortField].index) === 'object') {
+                	for (index in config.columns[config.sortField].index) {
+                		queryObject.sorts[config.columns[config.sortField].index[index]] = config.order;
+                	}
+                } else {
+                	queryObject.sorts[config.columns[config.sortField].index] = config.order;
+                }
+                
             }
             if (typeof(config.searchKeyword) === 'string' && config.searchKeyword.length > 0 && config.searchFields.length > 0) {
                 queryObject.search = {};
-                for ( var index in config.searchFields) {
+                for (index in config.searchFields) {
                     queryObject.search[config.searchFields[index]] = config.searchKeyword;
                 }
             }
@@ -371,9 +381,9 @@ jQuery.fn.smartyGrid = function(args, params) {
                     pagesize: 20,
                     pager: true,
                     delta: 10,
-                    sortUpHtml: '<i class="icon-sort-up"></i>',
-                    sortDownHtml: '<i class="icon-sort-down"></i>',
-                    sortDefaultHtml: '<i class="icon-sort"></i>',
+                    sortUpHtml: '<i class="icon-arrow-up"></i>',
+                    sortDownHtml: '<i class="icon-arrow-down"></i>',
+                    sortDefaultHtml: '<i class="icon-resize-vertical"></i>',
                     tableHtml: '<table class="table table-striped">',
                     tableHeadHtml: '<thead>',
                     tableHeadTrHtml: '<tr>',
@@ -439,6 +449,7 @@ jQuery.fn.smartyGrid = function(args, params) {
                 this.render(1);
             }
         } else if (typeof(args) === 'string' && args === 'reset') {
+            // reset config and grid data
             $(this).data('SMARTY_GRID_CONFIG', $(this).data('SMARTY_GRID_DEFAULT_CONFIG'));
             window.location.hash = '';
         } else if (typeof(args) === 'string' && args === 'setparams') {
