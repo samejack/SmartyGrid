@@ -138,7 +138,7 @@ jQuery.fn.smartyGrid = function(args, params) {
                     if (i === config.pagecode) {
                         html += '<li class="active"><a href="javascript:void(0);" rel="' + i + '">' + i + '</a></li>';
                     } else {
-                        html += '<li class="disabled"><a href="javascript:void(0);" rel="' + i + '">' + i + '</a></li>';
+                        html += '<li><a href="javascript:void(0);" rel="' + i + '">' + i + '</a></li>';
                     }
                 }
 
@@ -154,7 +154,7 @@ jQuery.fn.smartyGrid = function(args, params) {
                 $(this).find('.smarty-grid-pager').append(html);
                 $(this).find('.smarty-grid-pager a').click(function () {
                     var pagecode = parseInt($(this).attr('rel'), 10);
-                    if (typeof($(this).attr('rel')) !== 'undefined' && pagecode !== 'NaN') {
+                    if (!$(this).parent().hasClass('active') && typeof($(this).attr('rel')) !== 'undefined' && pagecode !== 'NaN') {
                         parent.render(pagecode);
                     }
                     return false;
