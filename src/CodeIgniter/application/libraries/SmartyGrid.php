@@ -58,10 +58,11 @@ class SmartyGrid
      * @param array $allowColumns 可以操作存取的欄位
      * @param string $sqlQuery SQL Query 可使用 JOIN 與法
      * @param CI_Input $input
+     * @param array $queryPrepare Query Bind 欄位 [optional]
      * @throws Exception
      * @return array 包含資料與總筆數
      */
-    public function getGridDataBySqlQuery(array $allowColumns, $sqlQuery, CI_Input &$input)
+    public function getGridDataBySqlQuery(array $allowColumns, $sqlQuery, CI_Input &$input, $queryPrepare = array())
     {
         // check column
         foreach ($allowColumns as &$column) {
@@ -81,8 +82,6 @@ class SmartyGrid
         $sorts = $input->get_post('sorts');
         $columns = $input->get_post('columns');
 
-        $queryPrepare = array();
-        
         // 新增過濾欄位
         $columnSql = '*';
         $columns = array();
@@ -337,5 +336,17 @@ class SmartyGrid
         }
 
         return $query;
+    }
+
+    /**
+     * Json output
+     * 
+     * @param array $output
+     */
+    public function response(array &$output)
+    {
+        $ci =& get_instance();
+        $ci->output->set_content_type('application/json');
+        $ci->output->set_output(json_encode($output));
     }
 }

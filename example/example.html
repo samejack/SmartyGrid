@@ -1,0 +1,49 @@
+<html>
+<head>
+    <title>Smarty Grid Example</title>
+    <link href="/css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body>
+
+<h2>Smarty Grid Example</h2>
+<input type="text" name="search" id="search-field" />
+<button id="search-btn">Search</button>
+<div id="my-grid"></div>
+
+<script type="text/javascript" src="/js/jquery/jquery-1.9.1.min.js"></script>
+<script type="text/javascript" src="/js/smarty-grid/SmartyGrid.js"></script>
+<script type="text/javascript">
+    $(document).ready( function () {
+
+        // display grid
+        $('#my-grid').smartyGrid({
+            uri: '/example',
+            pager: true,
+            searchFields: ['username', 'realname', 'email'],
+            sortField: 1,
+            order: 'ASC',
+            pagesize: 6,
+            columns:[
+                {title: 'CHECKBOX', index: 'id'},
+                {title: 'Name (Username)', index: ['username', 'realname'], sortable: true, render: function (values) {
+                    return '<td>' + values.realname + ' (' + values.username + ')</td>';
+                }},
+                {title: 'Title', index: 'title', sortable: true},
+                {title: 'Email', index: 'email', sortable: true},
+                {title: 'Create Time', index: 'create_time'}
+            ]
+        }).smartyGrid('render');
+
+        // bind event
+        $('#search-btn').click(function () {
+            var keyword = $('#search-field').val();
+            if (keyword === '') {
+                $('#my-grid').smartyGrid('reset').smartyGrid('render');
+            } else {
+                $('#my-grid').smartyGrid('search', keyword);
+            }
+        });
+    });
+</script>
+</body>
+</html>
