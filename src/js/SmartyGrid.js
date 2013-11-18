@@ -435,7 +435,7 @@ jQuery.fn.smartyGrid = function(args, params) {
             this.renderHeader();
         } else if (typeof(args) === 'string' && args === 'render') {
             // run render command
-            if (typeof(params) !== 'undefined') {
+            if (typeof(params) !== 'undefined' && !isNaN(params)) {
                 this.render(parseInt(params, 10));
             } else {
                 this.render($(this).data('SMARTY_GRID_CONFIG').pagecode);
