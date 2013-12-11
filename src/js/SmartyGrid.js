@@ -8,6 +8,21 @@
  * @license Apache License Version 2.0 (https://github.com/samejack/SmartyGrid/blob/master/LICENSE)
  */
 jQuery.fn.smartyGrid = function(args, params) {
+
+    // extenal Array indexOf function for IE hack
+    if (!Array.prototype.indexOf) {
+        Array.prototype.indexOf = function(elem) {
+            'use strict';
+            var i = 0, len = this.length;
+            for (; i < len; i += 1) {
+                if (this[i] === elem) {
+                    return i;
+                }
+            }
+            return -1;
+        };
+    }
+
     return this.each(function () {
 
         var self = this;
@@ -33,64 +48,66 @@ jQuery.fn.smartyGrid = function(args, params) {
             );
 
             for (i in columns) {
-                html = '';
-                if (columns[i].title === 'HIDDEN') {
-                    continue;
-                } else if (columns[i].title === 'CHECKBOX') {
-                    // render chexkbox selector
-                    html += config.tableHeadThHtml + '<input type="checkbox" class="smarty-grid-checkbox-all" /></th>';
-                    $(this).find('thead tr:first').append(html);
-                    $(this).find('thead tr th:last').addClass('smarty-grid-th-' + i);
-                    $('.smarty-grid-checkbox-all').click(function(){
-                        if (typeof($(this).prop('checked')) === 'undefined' || $(this).prop('checked') === false || $(this).prop('checked') === null) {
-                            $('.smarty-grid-checkbox').prop('checked', false);
-                        } else {
-                            $('.smarty-grid-checkbox').prop('checked', true);
-                        }
-                    });
-                    continue;
-                } else {
-                    html += config.tableHeadThHtml + columns[i].title;
-                    if (columns[i].sortable) {
-                        html += '<span class="sort-icon">';
-                        if (typeof(config.sortField) !== 'undefined' && config.sortField === parseInt(i, 10)) {
-                            if (config.order === 'ASC') {
-                                html += config.sortUpHtml;
+                if (columns.hasOwnProperty(i)) {
+                    html = '';
+                    if (columns[i].title === 'HIDDEN') {
+                        continue;
+                    } else if (columns[i].title === 'CHECKBOX') {
+                        // render chexkbox selector
+                        html += config.tableHeadThHtml + '<input type="checkbox" class="smarty-grid-checkbox-all" /></th>';
+                        $(this).find('thead tr:first').append(html);
+                        $(this).find('thead tr th:last').addClass('smarty-grid-th-' + i);
+                        $('.smarty-grid-checkbox-all').click(function(){
+                            if (typeof($(this).prop('checked')) === 'undefined' || $(this).prop('checked') === false || $(this).prop('checked') === null) {
+                                $('.smarty-grid-checkbox').prop('checked', false);
                             } else {
-                                html += config.sortDownHtml;
+                                $('.smarty-grid-checkbox').prop('checked', true);
                             }
-                        } else {
-                            html += config.sortDefaultHtml;
-                        }
-                        html += '</span>';
-                    }
-                    html += '</th>';
-                    $(this).find('thead tr:first').append(html);
-                    $(this).find('thead tr th:last').addClass('smarty-grid-th-' + i);
-
-                    // bind sort event
-                    if (columns[i].sortable) {
-                        $(this).find('thead tr th:last').click(function(){
-                            var config = $(this).parents('table').parent().data('SMARTY_GRID_CONFIG'),
-                                toSortField = $(this).parent().children().index(this);
-
-                            // reset all sort icon
-                            $(this).parent().find('.sort-icon').html(config.sortDefaultHtml);
-
-                            config.sortField = toSortField;
-                            if (typeof(config.sortField) !== 'undefined' && config.sortField === toSortField) {
-                                if (config.order === 'ASC') {
-                                    config.order = 'DESC';
-                                    $(this).find('.sort-icon').html(config.sortDownHtml);
-                                } else {
-                                    config.order = 'ASC';
-                                    $(this).find('.sort-icon').html(config.sortUpHtml);
-                                }
-                            }
-
-                            // render
-                            $(this).parents('table').parent().smartyGrid('render');
                         });
+                        continue;
+                    } else {
+                        html += config.tableHeadThHtml + columns[i].title;
+                        if (columns[i].sortable) {
+                            html += '<span class="sort-icon">';
+                            if (typeof(config.sortField) !== 'undefined' && config.sortField === parseInt(i, 10)) {
+                                if (config.order === 'ASC') {
+                                    html += config.sortUpHtml;
+                                } else {
+                                    html += config.sortDownHtml;
+                                }
+                            } else {
+                                html += config.sortDefaultHtml;
+                            }
+                            html += '</span>';
+                        }
+                        html += '</th>';
+                        $(this).find('thead tr:first').append(html);
+                        $(this).find('thead tr th:last').addClass('smarty-grid-th-' + i);
+
+                        // bind sort event
+                        if (columns[i].sortable) {
+                            $(this).find('thead tr th:last').click(function(){
+                                var config = $(this).parents('table').parent().data('SMARTY_GRID_CONFIG'),
+                                    toSortField = $(this).parent().children().index(this);
+
+                                // reset all sort icon
+                                $(this).parent().find('.sort-icon').html(config.sortDefaultHtml);
+
+                                config.sortField = toSortField;
+                                if (typeof(config.sortField) !== 'undefined' && config.sortField === toSortField) {
+                                    if (config.order === 'ASC') {
+                                        config.order = 'DESC';
+                                        $(this).find('.sort-icon').html(config.sortDownHtml);
+                                    } else {
+                                        config.order = 'ASC';
+                                        $(this).find('.sort-icon').html(config.sortUpHtml);
+                                    }
+                                }
+
+                                // render
+                                $(this).parents('table').parent().smartyGrid('render');
+                            });
+                        }
                     }
                 }
             }
@@ -181,57 +198,64 @@ jQuery.fn.smartyGrid = function(args, params) {
         this.renderRows = function(config, model){
             var columns = config.columns, html = '', value, i, j, k, string = '', arr = [];
             $(this).find('tbody').children().remove();
-
             for (i in model) {
-                html = config.tableBodyTrHtml;
-                for (j in columns) {
-                    // make column value
-                    if (typeof(columns[j].index) === 'object') {
-                        // complex index
-                        value = [];
-                        for (k in columns[j].index) {
-                            value[columns[j].index[k]] = model[i][columns[j].index[k]];
-                        }
-                    } else {
-                        // non-complex index
-                        value = model[i][columns[j].index];
-                    }
-
-                    if (columns[j].title === 'CHECKBOX') {
-                        // render check box
-                        if (columns[j].render !== undefined && typeof(columns[j].render) === 'function') {
-                            html += columns[j].render(value, model[i], columns[j], i);
-                            continue;
-                        } else {
-                            // fix value to string
-                            if (typeof(value) === 'object') {
-                                value = value.join(', ');
-                            }
-                            html += this.renderCheckbox(value, model[i], columns[j], i);
-                        }
-                    } else if (columns[j].index !== undefined) {
-                        if (columns[j].render !== undefined && typeof(columns[j].render) === 'function') {
-                            html += columns[j].render(value, model[i], columns[j], i);
-                            continue;
-                        } else {
-                            // fix value to string
-                            if (typeof(value) === 'object') {
-                                arr = [];
-                                for (k in value) {
-                                    arr.push(value[k]);
+                if (model.hasOwnProperty(i)) {
+                    html = config.tableBodyTrHtml;
+                    for (j in columns) {
+                        if (columns.hasOwnProperty(j)) {
+                            // make column value
+                            if (typeof(columns[j].index) === 'object') {
+                                // complex index
+                                value = [];
+                                for (k in columns[j].index) {
+                                    if (columns[j].index.hasOwnProperty(k)) {
+                                        value[columns[j].index[k]] = model[i][columns[j].index[k]];
+                                    }
                                 }
-                                string = arr.join(', ');
                             } else {
-                                string = value;
+                                // non-complex index
+                                value = model[i][columns[j].index];
                             }
-                            html += config.tableBodyTdHtml + string + '</td>'
+
+                            if (columns[j].title === 'CHECKBOX') {
+                                // render check box
+                                if (columns[j].render !== undefined && typeof(columns[j].render) === 'function') {
+                                    html += columns[j].render(value, model[i], columns[j], i);
+                                    continue;
+                                } else {
+                                    // fix value to string
+                                    if (typeof(value) === 'object') {
+                                        value = value.join(', ');
+                                    }
+                                    html += this.renderCheckbox(value, model[i], columns[j], i);
+                                }
+                            } else if (columns[j].index !== undefined) {
+                                if (columns[j].render !== undefined && typeof(columns[j].render) === 'function') {
+                                    html += columns[j].render(value, model[i], columns[j], i);
+                                    continue;
+                                } else {
+                                    // fix value to string
+                                    if (typeof(value) === 'object') {
+                                        arr = [];
+                                        for (k in value) {
+                                            if (value.hasOwnProperty(k)) {
+                                                arr.push(value[k]);
+                                            }
+                                        }
+                                        string = arr.join(', ');
+                                    } else {
+                                        string = value;
+                                    }
+                                    html += config.tableBodyTdHtml + string + '</td>'
+                                }
+                            } else {
+                                html += config.tableBodyTdHtml + '</td>';
+                            }
                         }
-                    } else {
-                        html += config.tableBodyTdHtml + '</td>';
                     }
+                    html += '</tr>';
+                    $(this).find('tbody').append(html);
                 }
-                html += '</tr>';
-                $(this).find('tbody').append(html);
             }
             $('.smarty-grid-checkbox').click(function () {
                 if ($(self).find('.smarty-grid-checkbox:checkbox:checked').size() === $(self).find('.smarty-grid-checkbox:checkbox').size()) {
@@ -265,34 +289,40 @@ jQuery.fn.smartyGrid = function(args, params) {
             if (typeof(config.sortField) !== 'undefined' && typeof(config.columns[config.sortField]) !== 'unedfined') {
                 queryObject.sorts = {};
                 if (typeof(config.columns[config.sortField].index) === 'object') {
-                	for (index in config.columns[config.sortField].index) {
-                		queryObject.sorts[config.columns[config.sortField].index[index]] = config.order;
-                	}
+                    for (index in config.columns[config.sortField].index) {
+                        if (config.columns[config.sortField].index.hasOwnProperty(index)) {
+                            queryObject.sorts[config.columns[config.sortField].index[index]] = config.order;
+                        }
+                    }
                 } else {
-                	queryObject.sorts[config.columns[config.sortField].index] = config.order;
+                    queryObject.sorts[config.columns[config.sortField].index] = config.order;
                 }
                 
             }
             if (typeof(config.searchKeyword) === 'string' && config.searchKeyword.length > 0 && config.searchFields.length > 0) {
                 queryObject.search = {};
                 for (index in config.searchFields) {
-                    queryObject.search[config.searchFields[index]] = config.searchKeyword;
+                    if (config.searchFields.hasOwnProperty(index)) {
+                        queryObject.search[config.searchFields[index]] = config.searchKeyword;
+                    }
                 }
             }
             // make columns
             queryObject.columns = [];
             for (i in config.columns) {
-                if (typeof(config.columns[i].index) === 'object') {
-                    // complex index
-                    for (j in config.columns[i].index) {
-                        if (queryObject.columns.lastIndexOf(config.columns[i].index[j]) === -1) {
-                            queryObject.columns.push(config.columns[i].index[j]);
+                if (config.columns.hasOwnProperty(i)) {
+                    if (typeof(config.columns[i].index) === 'object') {
+                        // complex index
+                        for (j in config.columns[i].index) {
+                            if (config.columns[i].index.hasOwnProperty(j) && queryObject.columns.indexOf(config.columns[i].index[j]) === -1) {
+                                queryObject.columns.push(config.columns[i].index[j]);
+                            }
                         }
-                    }
-                } else {
-                    // non-complex index
-                    if (queryObject.columns.lastIndexOf(config.columns[i].index) === -1) {
-                        queryObject.columns.push(config.columns[i].index);
+                    } else {
+                        // non-complex index
+                        if (queryObject.columns.indexOf(config.columns[i].index) === -1) {
+                            queryObject.columns.push(config.columns[i].index);
+                        }
                     }
                 }
             }
@@ -300,7 +330,9 @@ jQuery.fn.smartyGrid = function(args, params) {
             // append extension params
             if (typeof(config.ajaxParams) === 'object') {
                 for (i in config.ajaxParams) {
-                    queryObject[i] = config.ajaxParams[i];
+                    if (config.ajaxParams.hasOwnProperty(i)) {
+                        queryObject[i] = config.ajaxParams[i];
+                    }
                 }
             }
 
@@ -420,7 +452,7 @@ jQuery.fn.smartyGrid = function(args, params) {
             // fir default sortField to number
             if (typeof(config.sortField) === 'string') {
                 for (i in config.columns) {
-                    if (config.columns[i].index === config.sortField) {
+                    if (config.columns.hasOwnProperty(i) && config.columns[i].index === config.sortField) {
                         config.sortField = parseInt(i, 10);
                         break;
                     }
