@@ -363,9 +363,11 @@ jQuery.fn.smartyGrid = function(args, params) {
                         self.log('SmartyGrid WebService error: Return data not a JSON object.');
                     } else if (typeof(json.code) === 'undefined') {
                         self.log('SmartyGrid WebService format error. (code not found)');
-                    } else if (json.code !== 0) {
+                    } else if (parseInt(json.code, 10) !== 0 || isNaN(parseInt(json.code, 10))) {
                         if (typeof(config.ajaxErrorCallback) === 'function') {
                             config.ajaxErrorCallback(json);
+                        } else {
+                            self.log('SmartyGrid WebService format error. (\'code\' not a number.)');
                         }
                     } else if (typeof(json.message) === 'undefined') {
                         self.log('SmartyGrid WebService format error. (message not found)');
