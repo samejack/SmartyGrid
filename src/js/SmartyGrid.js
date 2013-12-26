@@ -363,11 +363,9 @@ jQuery.fn.smartyGrid = function(args, params) {
                         self.log('SmartyGrid WebService error: Return data not a JSON object.');
                     } else if (typeof(json.code) === 'undefined') {
                         self.log('SmartyGrid WebService format error. (code not found)');
-                    } else if (parseInt(json.code, 10) !== 0 || isNaN(parseInt(json.code, 10))) {
+                    } else if (json.code !== 0) {
                         if (typeof(config.ajaxErrorCallback) === 'function') {
                             config.ajaxErrorCallback(json);
-                        } else {
-                            self.log('SmartyGrid WebService format error. (\'code\' not a number.)');
                         }
                     } else if (typeof(json.message) === 'undefined') {
                         self.log('SmartyGrid WebService format error. (message not found)');
@@ -407,8 +405,8 @@ jQuery.fn.smartyGrid = function(args, params) {
         // 預設動作
         if (typeof(args) === 'object') {
             // update config
-            var config = $(this).data('SMARTY_GRID_CONFIG'), i = null, hashObj;
-            if (config === undefined || config === null) {
+            var config = $(this).data('SMARTY_GRID_CONFIG'), i = null, hashObj = {};
+            if (typeof(config) === 'undefined' || config === null) {
                 config = {
                     columns: [],
                     pagecode: 1,
@@ -442,7 +440,9 @@ jQuery.fn.smartyGrid = function(args, params) {
 
             // restore hash
             if (window.location.hash !== '') {
-                hashObj = jQuery.parseJSON(window.location.hash.substr(1));
+                if (window.location.hash.substr(1) !== '') {
+                    hashObj = jQuery.parseJSON(window.location.hash.substr(1));
+                }
                 jQuery.extend(config, hashObj);
             }
 
