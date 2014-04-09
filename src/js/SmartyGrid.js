@@ -56,8 +56,8 @@ jQuery.fn.smartyGrid = function(args, params) {
                     if (columns[i].title === 'HIDDEN') {
                         continue;
                     } else if (columns[i].title === 'CHECKBOX') {
-                        // render chexkbox selector
-                        html += config.tableHeadThHtml + '<input type="checkbox" class="smarty-grid-checkbox-all" /></th>';
+                        // render checkbox selector
+                        html += config.tableHeadThHtml + config.checkBoxHtml + '</th>';
                         $(this).find('thead tr:first').append(html);
                         $(this).find('thead tr th:last').addClass('smarty-grid-th-' + i);
                         $('.smarty-grid-checkbox-all').click(function(){
@@ -416,6 +416,7 @@ jQuery.fn.smartyGrid = function(args, params) {
                     pager: true,
                     pagerQuery: '.smarty-grid-pager',
                     pagerHtml: '<div class="pagination pagination-centered"><ul class="smarty-grid-pager"></ul></div>',
+                    checkBoxHtml: '<input type="checkbox" class="smarty-grid-checkbox-all" />',
                     delta: 10,
                     sortUpHtml: '<i class="icon-arrow-up"></i>',
                     sortDownHtml: '<i class="icon-arrow-down"></i>',
