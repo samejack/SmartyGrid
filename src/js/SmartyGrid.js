@@ -44,8 +44,11 @@ jQuery.fn.smartyGrid = function(args, params) {
                 config.tableHeadTrHtml +
                 '</tr></thead>' +
                 config.tableBodyHtml +
-                '</tbody></table><div class="pagination pagination-centered"><ul class="smarty-grid-pager"></ul></div>'
+                '</tbody></table>'
             );
+            if (config.pager) {
+                $(this).append(config.pagerHtml);
+            }
 
             for (i in columns) {
                 if (columns.hasOwnProperty(i)) {
@@ -117,7 +120,7 @@ jQuery.fn.smartyGrid = function(args, params) {
         this.renderPager = function (config) {
             var parent = this, i, start, end, html = '', first = 1, last = Math.ceil(config.total / config.pagesize);
 
-            $(this).find('.smarty-grid-pager').children().remove();
+            $(this).find(config.pagerQuery).children().remove();
 
             if (config.pager && typeof(config.total) !== 'undefined') {
 
@@ -131,8 +134,8 @@ jQuery.fn.smartyGrid = function(args, params) {
 
                 //display first button
                 if (config.pagecode === first) {
-                    html += '<li><a href="javascript:void(0);">&#124;&laquo;</a></li>';
-                    html += '<li><a href="javascript:void(0);">&laquo;</a></li>';
+                    html += '<li class="disabled"><a href="javascript:void(0);">&#124;&laquo;</a></li>';
+                    html += '<li class="disabled"><a href="javascript:void(0);">&laquo;</a></li>';
                 }else{
                     html += '<li><a href="javascript:void(0);" rel="' + first + '">&#124;&laquo;</a></li>';
                     html += '<li><a href="javascript:void(0);" rel="' + (config.pagecode-1) + '">&laquo;</a></li>';
@@ -153,7 +156,7 @@ jQuery.fn.smartyGrid = function(args, params) {
                 }
                 for (i = start; i <= end; i++) {
                     if (i === config.pagecode) {
-                        html += '<li class="active"><a href="javascript:void(0);" rel="' + i + '">' + i + '</a></li>';
+                        html += '<li class="active disabled"><a href="javascript:void(0);" rel="' + i + '">' + i + '</a></li>';
                     } else {
                         html += '<li><a href="javascript:void(0);" rel="' + i + '">' + i + '</a></li>';
                     }
@@ -161,8 +164,8 @@ jQuery.fn.smartyGrid = function(args, params) {
 
                 //display last button
                 if( config.pagecode === last ){
-                    html += '<li><a href="javascript:void(0);">&raquo;</a></li>';
-                    html += '<li><a href="javascript:void(0);">&raquo;&#124;</a></li>';
+                    html += '<li class="disabled"><a href="javascript:void(0);">&raquo;</a></li>';
+                    html += '<li class="disabled"><a href="javascript:void(0);">&raquo;&#124;</a></li>';
                 }else{
                     html += '<li><a href="javascript:void(0);" rel="' + (config.pagecode + 1) + '">&raquo;</a></li>';
                     html += '<li><a href="javascript:void(0);" rel="' + last + '">&raquo;&#124;</a></li>';
@@ -274,7 +277,7 @@ jQuery.fn.smartyGrid = function(args, params) {
             pagecode = parseInt(pagecode, 10);
             if (config.total !== undefined && config.total !== 0 &&
                     (typeof(pagecode) === 'undefined' || pagecode <= 0 || pagecode > (Math.ceil(config.total / config.pagesize)))) {
-                console.warn('pagecode error: ' + pagecode);
+                this.log('pagecode error: ' + pagecode);
                 return;
             }
             config.pagecode = parseInt(pagecode, 10);
@@ -338,9 +341,6 @@ jQuery.fn.smartyGrid = function(args, params) {
 
             if (config.uri === undefined) {
                 // static data
-                config.total = parseInt(config.data.length, 10);
-
-                // page process
                 data = [];
                 for (i = offset; i < offset + config.pagesize; i++) {
                     if (i < config.data.length) {
@@ -348,10 +348,12 @@ jQuery.fn.smartyGrid = function(args, params) {
                     }
                 }
 
+                // update total
+                config.total = parseInt(config.data.length, 10);
+                // render pager
                 this.renderRows(config, data);
                 this.renderPager(config);
-
-                if( typeof(config.afterRender)==='function' ){
+                if (typeof(config.afterRender) === 'function') {
                     config.afterRender(config.total, config.pagecode, config.pagesize);
                 }
             } else {
@@ -374,12 +376,12 @@ jQuery.fn.smartyGrid = function(args, params) {
                     } else if (typeof(json.data.total) === 'undefined' || typeof(json.data.list) === 'undefined') {
                         self.log('SmartyGrid WebService data format error.');
                     } else {
-                        //update total
+                        // update total
                         config.total = parseInt(json.data.total, 10);
-                        //render pager
+                        // render pager
                         parent.renderRows(config, json.data.list);
                         parent.renderPager(config);
-                        if( typeof(config.afterRender) === 'function' ){
+                        if (typeof(config.afterRender) === 'function') {
                             config.afterRender(config.total, config.pagecode, config.pagesize);
                         }
                     }
@@ -412,6 +414,8 @@ jQuery.fn.smartyGrid = function(args, params) {
                     pagecode: 1,
                     pagesize: 20,
                     pager: true,
+                    pagerQuery: '.smarty-grid-pager',
+                    pagerHtml: '<div class="pagination pagination-centered"><ul class="smarty-grid-pager"></ul></div>',
                     delta: 10,
                     sortUpHtml: '<i class="icon-arrow-up"></i>',
                     sortDownHtml: '<i class="icon-arrow-down"></i>',
@@ -477,7 +481,7 @@ jQuery.fn.smartyGrid = function(args, params) {
         } else if (typeof(args) === 'string' && args === 'search') {
             // run search command
             if (typeof(params) !== 'string') {
-                console.warn('Search keyword not found.');
+                this.log('Search keyword not found.');
             } else {
                 $(this).data('SMARTY_GRID_CONFIG').searchKeyword = params;
                 this.render(1);
@@ -490,7 +494,7 @@ jQuery.fn.smartyGrid = function(args, params) {
             // set extension ajax params
             var config = $(this).data('SMARTY_GRID_CONFIG');
             if (typeof(params) !== 'object') {
-                console.warn('Params not a object.');
+                this.log('Params not a object.');
             } else {
                 config.ajaxParams = params;
             }
