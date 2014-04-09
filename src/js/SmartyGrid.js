@@ -280,7 +280,7 @@ jQuery.fn.smartyGrid = function(args, params) {
                 this.log('pagecode error: ' + pagecode);
                 return;
             }
-            config.pagecode = parseInt(pagecode, 10);
+            config.pagecode = pagecode;
 
             // make query object
             offset = (config.pagecode - 1) * config.pagesize;
@@ -289,7 +289,7 @@ jQuery.fn.smartyGrid = function(args, params) {
                 size: config.pagesize,
                 pagecode: config.pagecode
             }
-            if (typeof(config.sortField) !== 'undefined' && typeof(config.columns[config.sortField]) !== 'unedfined') {
+            if (typeof(config.sortField) !== 'undefined' && typeof(config.columns[config.sortField]) !== 'undefined') {
                 queryObject.sorts = {};
                 if (typeof(config.columns[config.sortField].index) === 'object') {
                     for (index in config.columns[config.sortField].index) {
