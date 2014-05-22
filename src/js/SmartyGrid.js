@@ -129,7 +129,7 @@ jQuery.fn.smartyGrid = function(args, params) {
                     if (href !== false) {
                         return '<li><a href=\'' + href + '\'>' + no + '</a></li>';
                     } else {
-                        return '<li class="disabled"><a href="javascript:void(0);">' + no + '</a></li>';
+                        return '<li class="active"><a href="javascript:void(0);">' + no + '</a></li>';
                     }
                 }
             },
@@ -148,37 +148,37 @@ jQuery.fn.smartyGrid = function(args, params) {
                 pagerHtml: '<div class="btn-group smarty-grid-pager"></div>',
                 pagerPrevHtml: function (href) {
                     if (href !== false) {
-                        return '<div class="btn btn-default"><a href=\'' + href + '\'>&laquo;</a></div>';
+                        return '<a class="btn" href=\'' + href + '\'>&laquo;</a>';
                     } else {
-                        return '<div class="btn btn-default disabled"><a href="javascript:void(0);">&laquo;</a></div>';
+                        return '<a class="btn disabled" href="javascript:void(0);">&laquo;</a>';
                     }
                 },
                 pagerNextHtml: function (href) {
                     if (href !== false) {
-                        return '<div class="btn btn-default"><a href=\'' + href + '\'>&raquo;</a></div>';
+                        return '<a class="btn btn-default" href=\'' + href + '\'>&raquo;</a>';
                     } else {
-                        return '<div class="btn btn-default disabled"><a href="javascript:void(0);">&raquo;</a></div>';
+                        return '<a class="btn btn-default disabled" href="javascript:void(0);">&raquo;</a>';
                     }
                 },
                 pagerStartHtml: function (href) {
                     if (href !== false) {
-                        return '<div class="btn btn-default"><a href=\'' + href + '\'>&#124;&laquo;</a></div>';
+                        return '<a class="btn btn-default" href=\'' + href + '\'>&#124;&laquo;</a></div>';
                     } else {
-                        return '<div class="btn btn-default disabled"><a href="javascript:void(0);">&#124;&laquo;</a></div>';
+                        return '<a class="btn btn-default disabled" href="javascript:void(0);">&#124;&laquo;</a>';
                     }
                 },
                 pagerEndHtml: function (href) {
                     if (href !== false) {
-                        return '<div class="btn btn-default"><a href=\'' + href + '\'>&raquo;&#124;</a></div>';
+                        return '<a class="btn btn-default" href=\'' + href + '\'>&raquo;&#124;</a>';
                     } else {
-                        return '<div class="btn btn-default disabled"><a href="javascript:void(0);">&raquo;&#124;</a></div>';
+                        return '<a class="btn btn-default disabled" href="javascript:void(0);">&raquo;&#124;</a>';
                     }
                 },
                 pagerNoHtml: function (href, no) {
                     if (href !== false) {
-                        return '<div class="btn btn-default"><a href=\'' + href + '\'>' + no + '</a></div>';
+                        return '<a class="btn btn-default" href=\'' + href + '\'>' + no + '</a>';
                     } else {
-                        return '<div class="btn btn-default disabled"><a href="javascript:void(0);">' + no + '</a></div>';
+                        return '<a class="btn btn-default active" href="javascript:void(0);">' + no + '</a>';
                     }
                 }
             }
