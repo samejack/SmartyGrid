@@ -24,8 +24,226 @@ jQuery.fn.smartyGrid = function(args, params) {
     }
 
     return this.each(function () {
-
         var self = this;
+
+        if ($(this).data('SMARTY_GRID_HASH_FN') === undefined) {
+            $(window).on('hashchange', function () {
+                self.render();
+            });
+            $(this).data('SMARTY_GRID_HASH_FN', true);
+        }
+
+        // defined themes
+        this.themes = {
+            bootstrap2: {
+                pagerHtml: '<div class="pagination pagination-centered"><ul class="smarty-grid-pager"></ul></div>',
+                checkBoxHtml: '<input type="checkbox" class="smarty-grid-checkbox-all" />',
+                sortUpHtml: '<i class="icon-arrow-up"></i>',
+                sortDownHtml: '<i class="icon-arrow-down"></i>',
+                sortDefaultHtml: '<i class="icon-resize-vertical"></i>',
+                tableHtml: '<table class="table table-striped">',
+                tableHeadHtml: '<thead>',
+                tableHeadTrHtml: '<tr>',
+                tableHeadThHtml: '<th style="white-space: nowrap;">',
+                tableBodyHtml: '<tbody>',
+                tableBodyTrHtml: '<tr>',
+                tableBodyTdHtml: '<td>',
+                pagerPrevHtml: function (href) {
+                    if (href !== false) {
+                        return '<li><a href=\'' + href + '\'>&laquo;</a></li>';
+                    } else {
+                        return '<li class="disabled"><a href="javascript:void(0);">&laquo;</a></li>';
+                    }
+                },
+                pagerNextHtml: function (href) {
+                    if (href !== false) {
+                        return '<li><a href=\'' + href + '\'>&raquo;</a></li>';
+                    } else {
+                        return '<li class="disabled"><a href="javascript:void(0);">&raquo;</a></li>';
+                    }
+                },
+                pagerStartHtml: function (href) {
+                    if (href !== false) {
+                        return '<li><a href=\'' + href + '\'>&#124;&laquo;</a></li>';
+                    } else {
+                        return '<li class="disabled"><a href="javascript:void(0);">&#124;&laquo;</a></li>';
+                    }
+                },
+                pagerEndHtml: function (href) {
+                    if (href !== false) {
+                        return '<li><a href=\'' + href + '\'>&raquo;&#124;</a></li>';
+                    } else {
+                        return '<li class="disabled"><a href="javascript:void(0);">&raquo;&#124;</a></li>';
+                    }
+                },
+                pagerNoHtml: function (href, no) {
+                    if (href !== false) {
+                        return '<li><a href=\'' + href + '\'>' + no + '</a></li>';
+                    } else {
+                        return '<li class="disabled"><a href="javascript:void(0);">' + no + '</a></li>';
+                    }
+                }
+            },
+            default: {
+                pagerHtml: '<div class="smarty-grid-pager"></div>',
+                checkBoxHtml: '<input type="checkbox" />',
+                sortUpHtml: '<i>[P]</i>',
+                sortDownHtml: '<i>[D]</i>',
+                sortDefaultHtml: '<i>[S]</i>',
+                tableHtml: '<table>',
+                tableHeadHtml: '<thead>',
+                tableHeadTrHtml: '<tr>',
+                tableHeadThHtml: '<th>',
+                tableBodyHtml: '<tbody>',
+                tableBodyTrHtml: '<tr>',
+                tableBodyTdHtml: '<td>',
+                pagerPrevHtml: function (href) {
+                    if (href !== false) {
+                        return '<span><a href=\'' + href + '\'>&laquo;</a></span>';
+                    } else {
+                        return '<span>&laquo;</span>';
+                    }
+                },
+                pagerNextHtml: function (href) {
+                    if (href !== false) {
+                        return '<span><a href=\'' + href + '\'>&raquo;</a></span>';
+                    } else {
+                        return '<span>&raquo;</span>';
+                    }
+                },
+                pagerStartHtml: function (href) {
+                    if (href !== false) {
+                        return '<span><a href=\'' + href + '\'>&#124;&laquo;</a></span>';
+                    } else {
+                        return '<span>&#124;&laquo;</span>';
+                    }
+                },
+                pagerEndHtml: function (href) {
+                    if (href !== false) {
+                        return '<span><a href=\'' + href + '\'>&raquo;&#124;</a></span>';
+                    } else {
+                        return '<span>&raquo;&#124;</span>';
+                    }
+                },
+                pagerNoHtml: function (href, no) {
+                    if (href !== false) {
+                        return '<span><a href=\'' + href + '\'>' + no + '</a></span>';
+                    } else {
+                        return '<span>' + no + '</span>';
+                    }
+                }
+            }
+        };
+
+        this.main = function (args, params) {
+            // 預設動作
+            if (typeof(args) === 'object') {
+                // update config
+                var config = $(this).data('SMARTY_GRID_CONFIG'), i = null, hashObj = {}, tmpConfig;
+                if (typeof(config) === 'undefined' || config === null) {
+                    config = {
+                        columns: [],
+                        pagecode: 1,
+                        pagesize: 20,
+                        delta: 10,
+                        pager: true,
+                        pagerQuery: '.smarty-grid-pager',
+                        theme: 'default',
+                        sortField: undefined,
+                        ajaxErrorCallback: function (json) {
+                            self.log('SmartyGrid WebService error: ' + json.message + ' (' + json.code + ')');
+                        },
+                        afterRender: function (total, pagecode, pagesize) {},
+                        order: 'ASC',
+                        searchFields: [],
+                        searchKeyword: undefined,
+                        ajaxParams: {}
+                    };
+                }
+
+                // make config
+                jQuery.extend(config, args);
+
+                // override theme configuration
+                if (typeof(config.theme) === 'object') {
+                    jQuery.extend(config, config.theme);
+                } else if (typeof(config.theme) === 'string' && typeof(self.themes[config.theme]) !== 'undefined') {
+                    jQuery.extend(config, self.themes[config.theme]);
+                }
+
+                // restore hash
+                hashObj = this.getHash();
+                if (hashObj !== null) {
+                    jQuery.extend(config, hashObj);
+                }
+
+                // fix data type
+                config.pagecode = parseInt(config.pagecode, 10);
+                config.pagesize = parseInt(config.pagesize, 10);
+                config.delta = parseInt(config.delta, 10);
+
+                // fir default sortField to number
+                if (typeof(config.sortField) === 'string') {
+                    for (i in config.columns) {
+                        if (config.columns.hasOwnProperty(i) && config.columns[i].index === config.sortField) {
+                            config.sortField = parseInt(i, 10);
+                            break;
+                        }
+                    }
+                }
+
+                // save config
+                $(this).data('SMARTY_GRID_CONFIG', config);
+                $(this).data('SMARTY_GRID_DEFAULT_CONFIG', jQuery.extend(true, {}, config));
+
+                // display header
+                this.renderHeader();
+            } else if (typeof(args) === 'string' && args === 'render') {
+                var config = $(this).data('SMARTY_GRID_CONFIG'), hashObj = this.getHash();
+                // run render command
+                if (hashObj === null) {
+                    if (typeof(params) !== 'undefined' && !isNaN(params)) {
+                        config.pagecode = parseInt(params, 10);
+                    }
+                    this.setHash(config);
+                } else {
+                    if (typeof(params) !== 'undefined' && !isNaN(params)) {
+                        hashObj.pagecode = parseInt(params, 10);
+                    }
+                    this.render();
+                }
+            } else if (typeof(args) === 'string' && args === 'search') {
+                var config = $(this).data('SMARTY_GRID_CONFIG');
+                // run search command
+                if (typeof(params) !== 'string') {
+                    this.log('Search keyword not found.');
+                } else {
+                    config.searchKeyword = params;
+                }
+                this.setHash(config);
+            } else if (typeof(args) === 'string' && args === 'pagesize') {
+                var config = $(this).data('SMARTY_GRID_CONFIG');
+                // run search command
+                if (typeof(params) !== 'number') {
+                    this.log('Page size format error.');
+                } else {
+                    config.pagesize = params;
+                }
+                this.setHash(config);
+            } else if (typeof(args) === 'string' && args === 'reset') {
+                // reset config and grid data
+                $(this).data('SMARTY_GRID_CONFIG', $(this).data('SMARTY_GRID_DEFAULT_CONFIG'));
+                this.setHash({});
+            } else if (typeof(args) === 'string' && args === 'setparams') {
+                // set extension ajax params
+                var config = $(this).data('SMARTY_GRID_CONFIG');
+                if (typeof(params) !== 'object') {
+                    this.log('Params not a object.');
+                } else {
+                    config.ajaxParams = params;
+                }
+            }
+        }
 
         this.log = function (message) {
             if (typeof(console.log) === 'function') {
@@ -33,7 +251,31 @@ jQuery.fn.smartyGrid = function(args, params) {
             }
         };
 
-        this.renderHeader = function() {
+        this.getHash = function () {
+            if (window.location.hash.substr(1) !== '') {
+                return jQuery.parseJSON(window.location.hash.substr(1));
+            }
+            return null;
+        };
+
+        this.setHash = function (obj) {
+            var hashObject = {}, config = $(this).data('SMARTY_GRID_CONFIG');
+
+            hashObject.pagecode = obj.pagecode;
+            hashObject.pagesize = obj.pagesize;
+
+            if (typeof(config.searchKeyword) === 'string' && config.searchFields.length > 0) {
+                hashObject.searchKeyword = obj.searchKeyword;
+            }
+            if (obj.sortField !== undefined && config.columns[obj.sortField] !== undefined) {
+                hashObject.sortField = obj.sortField;
+                hashObject.order = obj.order;
+            }
+
+            window.location.hash = '#' + JSON.stringify(hashObject);
+        };
+
+        this.renderHeader = function () {
             var i = null, config = $(this).data('SMARTY_GRID_CONFIG'), columns = config.columns, html;
 
             // remove grid children and make header
@@ -91,7 +333,8 @@ jQuery.fn.smartyGrid = function(args, params) {
                         if (columns[i].sortable) {
                             $(this).find('thead tr th:last').click(function(){
                                 var config = $(this).parents('table').parent().data('SMARTY_GRID_CONFIG'),
-                                    toSortField = $(this).parent().children().index(this);
+                                    toSortField = $(this).parent().children().index(this),
+                                    hashObj;
 
                                 // reset all sort icon
                                 $(this).parent().find('.sort-icon').html(config.sortDefaultHtml);
@@ -107,8 +350,11 @@ jQuery.fn.smartyGrid = function(args, params) {
                                     }
                                 }
 
-                                // render
-                                $(this).parents('table').parent().smartyGrid('render');
+                                hashObj = self.getHash();
+                                hashObj.order = config.order;
+                                hashObj.sortField = config.sortField;
+
+                                self.setHash(hashObj);
                             });
                         }
                     }
@@ -118,11 +364,13 @@ jQuery.fn.smartyGrid = function(args, params) {
 
         // render pager component
         this.renderPager = function (config) {
-            var parent = this, i, start, end, html = '', first = 1, last = Math.ceil(config.total / config.pagesize);
+            var parent = this, i, start, end, html = '', first = 1, last = Math.ceil(config.total / config.pagesize), hashObj;
 
             $(this).find(config.pagerQuery).children().remove();
 
             if (config.pager && typeof(config.total) !== 'undefined') {
+
+                hashObj = this.getHash();
 
                 //fixed pagecode
                 if (config.pagecode > last) {
@@ -134,14 +382,16 @@ jQuery.fn.smartyGrid = function(args, params) {
 
                 //display first button
                 if (config.pagecode === first) {
-                    html += '<li class="disabled"><a href="javascript:void(0);">&#124;&laquo;</a></li>';
-                    html += '<li class="disabled"><a href="javascript:void(0);">&laquo;</a></li>';
+                    html += config.pagerStartHtml(false);
+                    html += config.pagerPrevHtml(false);
                 }else{
-                    html += '<li><a href="javascript:void(0);" rel="' + first + '">&#124;&laquo;</a></li>';
-                    html += '<li><a href="javascript:void(0);" rel="' + (config.pagecode-1) + '">&laquo;</a></li>';
+                    hashObj.pagecode = first;
+                    html += config.pagerStartHtml('#' + JSON.stringify(hashObj));
+                    hashObj.pagecode = config.pagecode - 1;
+                    html += config.pagerPrevHtml('#' + JSON.stringify(hashObj));
                 }
 
-                //display middel button
+                //display middle button
                 start = first;
                 end = last;
                 if (Math.ceil(config.total / config.pagesize)>config.delta) {
@@ -156,29 +406,26 @@ jQuery.fn.smartyGrid = function(args, params) {
                 }
                 for (i = start; i <= end; i++) {
                     if (i === config.pagecode) {
-                        html += '<li class="active disabled"><a href="javascript:void(0);" rel="' + i + '">' + i + '</a></li>';
+                        html += config.pagerNoHtml(false, i);
                     } else {
-                        html += '<li><a href="javascript:void(0);" rel="' + i + '">' + i + '</a></li>';
+                        hashObj.pagecode = i;
+                        html += config.pagerNoHtml('#' + JSON.stringify(hashObj), i);
                     }
                 }
 
                 //display last button
                 if( config.pagecode === last ){
-                    html += '<li class="disabled"><a href="javascript:void(0);">&raquo;</a></li>';
-                    html += '<li class="disabled"><a href="javascript:void(0);">&raquo;&#124;</a></li>';
+                    html += config.pagerNextHtml(false);
+                    html += config.pagerEndHtml(false);
                 }else{
-                    html += '<li><a href="javascript:void(0);" rel="' + (config.pagecode + 1) + '">&raquo;</a></li>';
-                    html += '<li><a href="javascript:void(0);" rel="' + last + '">&raquo;&#124;</a></li>';
+                    hashObj.pagecode = config.pagecode + 1;
+                    html += config.pagerNextHtml('#' + JSON.stringify(hashObj));
+                    hashObj.pagecode = last;
+                    html += config.pagerEndHtml('#' + JSON.stringify(hashObj));
                 }
 
                 $(this).find('.smarty-grid-pager').append(html);
-                $(this).find('.smarty-grid-pager a').click(function () {
-                    var pagecode = parseInt($(this).attr('rel'), 10);
-                    if (!$(this).parent().hasClass('active') && typeof($(this).attr('rel')) !== 'undefined' && pagecode !== 'NaN') {
-                        parent.render(pagecode);
-                    }
-                    return false;
-                });
+
             } else {
                 $(this).find('.smarty-grid-pager').hide();
             }
@@ -269,12 +516,21 @@ jQuery.fn.smartyGrid = function(args, params) {
             });
         };
 
-        this.render = function(pagecode){
+        this.render = function () {
             //load configuration
-            var config = $(this).data('SMARTY_GRID_CONFIG'), uri = config.uri, parent = this, offset = 0, index = null, i = null, j = null, data, queryObject;
+            var config = $(this).data('SMARTY_GRID_CONFIG'),
+                uri = config.uri,
+                parent = this,
+                offset = 0,
+                index = null,
+                i = null,
+                j = null,
+                data,
+                queryObject,
+                pagecode;
 
             // check page code
-            pagecode = parseInt(pagecode, 10);
+            pagecode = parseInt(this.getHash().pagecode, 10);
             if (config.total !== undefined && config.total !== 0 &&
                     (typeof(pagecode) === 'undefined' || pagecode <= 0 || pagecode > (Math.ceil(config.total / config.pagesize)))) {
                 this.log('pagecode error: ' + pagecode);
@@ -288,7 +544,7 @@ jQuery.fn.smartyGrid = function(args, params) {
                 offset: offset,
                 size: config.pagesize,
                 pagecode: config.pagecode
-            }
+            };
             if (typeof(config.sortField) !== 'undefined' && typeof(config.columns[config.sortField]) !== 'undefined') {
                 queryObject.sorts = {};
                 if (typeof(config.columns[config.sortField].index) === 'object') {
@@ -300,7 +556,6 @@ jQuery.fn.smartyGrid = function(args, params) {
                 } else {
                     queryObject.sorts[config.columns[config.sortField].index] = config.order;
                 }
-                
             }
             if (typeof(config.searchKeyword) === 'string' && config.searchKeyword.length > 0 && config.searchFields.length > 0) {
                 queryObject.search = {};
@@ -339,7 +594,7 @@ jQuery.fn.smartyGrid = function(args, params) {
                 }
             }
 
-            if (config.uri === undefined) {
+            if (typeof(config.data) === 'object') {
                 // static data
                 data = [];
                 for (i = offset; i < offset + config.pagesize; i++) {
@@ -387,119 +642,9 @@ jQuery.fn.smartyGrid = function(args, params) {
                     }
                 });
             }
-
-            // set hash
-            delete queryObject.offset;
-            delete queryObject.size;
-            delete queryObject.sorts;
-            delete queryObject.search;
-            delete queryObject.columns;
-            if (typeof(config.searchKeyword) === 'string' && config.searchFields.length > 0) {
-                queryObject.searchKeyword = config.searchKeyword;
-            }
-            if (config.sortField !== undefined && config.columns[config.sortField] !== undefined) {
-                queryObject.sortField = config.sortField;
-                queryObject.order = config.order;
-            }
-            window.location.hash = '#' + JSON.stringify(queryObject);
         };
 
-        // 預設動作
-        if (typeof(args) === 'object') {
-            // update config
-            var config = $(this).data('SMARTY_GRID_CONFIG'), i = null, hashObj = {};
-            if (typeof(config) === 'undefined' || config === null) {
-                config = {
-                    columns: [],
-                    pagecode: 1,
-                    pagesize: 20,
-                    pager: true,
-                    pagerQuery: '.smarty-grid-pager',
-                    pagerHtml: '<div class="pagination pagination-centered"><ul class="smarty-grid-pager"></ul></div>',
-                    checkBoxHtml: '<input type="checkbox" class="smarty-grid-checkbox-all" />',
-                    delta: 10,
-                    sortUpHtml: '<i class="icon-arrow-up"></i>',
-                    sortDownHtml: '<i class="icon-arrow-down"></i>',
-                    sortDefaultHtml: '<i class="icon-resize-vertical"></i>',
-                    tableHtml: '<table class="table table-striped">',
-                    tableHeadHtml: '<thead>',
-                    tableHeadTrHtml: '<tr>',
-                    tableHeadThHtml: '<th style="white-space: nowrap;">',
-                    tableBodyHtml: '<tbody>',
-                    tableBodyTrHtml: '<tr>',
-                    tableBodyTdHtml: '<td>',
-                    sortField: undefined,
-                    ajaxErrorCallback: function (json) {
-                        self.log('SmartyGrid WebService error: ' + json.message + ' (' + json.code + ')');
-                    },
-                    afterRender: function (total, pagecode, pagesize) {},
-                    order: 'ASC',
-                    searchFields: [],
-                    searchKeyword: undefined,
-                    ajaxParams: {}
-                };
-            }
-
-            // make config
-            jQuery.extend(config, args);
-
-            // restore hash
-            if (window.location.hash !== '') {
-                if (window.location.hash.substr(1) !== '') {
-                    hashObj = jQuery.parseJSON(window.location.hash.substr(1));
-                }
-                jQuery.extend(config, hashObj);
-            }
-
-            // fix data type
-            config.pagecode = parseInt(config.pagecode, 10);
-            config.pagesize = parseInt(config.pagesize, 10);
-            config.delta = parseInt(config.delta, 10);
-
-            // fir default sortField to number
-            if (typeof(config.sortField) === 'string') {
-                for (i in config.columns) {
-                    if (config.columns.hasOwnProperty(i) && config.columns[i].index === config.sortField) {
-                        config.sortField = parseInt(i, 10);
-                        break;
-                    }
-                }
-            }
-
-            // save config
-            $(this).data('SMARTY_GRID_CONFIG', config);
-            $(this).data('SMARTY_GRID_DEFAULT_CONFIG', jQuery.extend(true, {}, config));
-
-            // display header
-            this.renderHeader();
-        } else if (typeof(args) === 'string' && args === 'render') {
-            // run render command
-            if (typeof(params) !== 'undefined' && !isNaN(params)) {
-                this.render(parseInt(params, 10));
-            } else {
-                this.render($(this).data('SMARTY_GRID_CONFIG').pagecode);
-            }
-        } else if (typeof(args) === 'string' && args === 'search') {
-            // run search command
-            if (typeof(params) !== 'string') {
-                this.log('Search keyword not found.');
-            } else {
-                $(this).data('SMARTY_GRID_CONFIG').searchKeyword = params;
-                this.render(1);
-            }
-        } else if (typeof(args) === 'string' && args === 'reset') {
-            // reset config and grid data
-            $(this).data('SMARTY_GRID_CONFIG', $(this).data('SMARTY_GRID_DEFAULT_CONFIG'));
-            window.location.hash = '';
-        } else if (typeof(args) === 'string' && args === 'setparams') {
-            // set extension ajax params
-            var config = $(this).data('SMARTY_GRID_CONFIG');
-            if (typeof(params) !== 'object') {
-                this.log('Params not a object.');
-            } else {
-                config.ajaxParams = params;
-            }
-        }
-
+        // invoke main function
+        this.main(args, params);
     });
 };
