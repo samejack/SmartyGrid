@@ -35,8 +35,56 @@ jQuery.fn.smartyGrid = function(args, params) {
 
         // defined themes
         this.themes = {
+            default: {
+                checkBoxHtml: '<input type="checkbox" />',
+                sortUpHtml: '<i>[P]</i>',
+                sortDownHtml: '<i>[D]</i>',
+                sortDefaultHtml: '<i>[S]</i>',
+                tableHtml: '<table>',
+                tableHeadHtml: '<thead>',
+                tableHeadTrHtml: '<tr>',
+                tableHeadThHtml: '<th>',
+                tableBodyHtml: '<tbody>',
+                tableBodyTrHtml: '<tr>',
+                tableBodyTdHtml: '<td>',
+                pagerHtml: '<div class="smarty-grid-pager"></div>',
+                pagerPrevHtml: function (href) {
+                    if (href !== false) {
+                        return '<span><a href=\'' + href + '\'>&laquo;</a></span>';
+                    } else {
+                        return '<span>&laquo;</span>';
+                    }
+                },
+                pagerNextHtml: function (href) {
+                    if (href !== false) {
+                        return '<span><a href=\'' + href + '\'>&raquo;</a></span>';
+                    } else {
+                        return '<span>&raquo;</span>';
+                    }
+                },
+                pagerStartHtml: function (href) {
+                    if (href !== false) {
+                        return '<span><a href=\'' + href + '\'>&#124;&laquo;</a></span>';
+                    } else {
+                        return '<span>&#124;&laquo;</span>';
+                    }
+                },
+                pagerEndHtml: function (href) {
+                    if (href !== false) {
+                        return '<span><a href=\'' + href + '\'>&raquo;&#124;</a></span>';
+                    } else {
+                        return '<span>&raquo;&#124;</span>';
+                    }
+                },
+                pagerNoHtml: function (href, no) {
+                    if (href !== false) {
+                        return '<span><a href=\'' + href + '\'>' + no + '</a></span>';
+                    } else {
+                        return '<span>' + no + '</span>';
+                    }
+                }
+            },
             bootstrap2: {
-                pagerHtml: '<div class="pagination pagination-centered"><ul class="smarty-grid-pager"></ul></div>',
                 checkBoxHtml: '<input type="checkbox" class="smarty-grid-checkbox-all" />',
                 sortUpHtml: '<i class="icon-arrow-up"></i>',
                 sortDownHtml: '<i class="icon-arrow-down"></i>',
@@ -48,6 +96,7 @@ jQuery.fn.smartyGrid = function(args, params) {
                 tableBodyHtml: '<tbody>',
                 tableBodyTrHtml: '<tr>',
                 tableBodyTdHtml: '<td>',
+                pagerHtml: '<div class="pagination pagination-centered"><ul class="smarty-grid-pager"></ul></div>',
                 pagerPrevHtml: function (href) {
                     if (href !== false) {
                         return '<li><a href=\'' + href + '\'>&laquo;</a></li>';
@@ -84,52 +133,52 @@ jQuery.fn.smartyGrid = function(args, params) {
                     }
                 }
             },
-            default: {
-                pagerHtml: '<div class="smarty-grid-pager"></div>',
-                checkBoxHtml: '<input type="checkbox" />',
-                sortUpHtml: '<i>[P]</i>',
-                sortDownHtml: '<i>[D]</i>',
-                sortDefaultHtml: '<i>[S]</i>',
-                tableHtml: '<table>',
+            bootstrap3: {
+                checkBoxHtml: '<input type="checkbox" class="smarty-grid-checkbox-all" />',
+                sortUpHtml: '<i class="glyphicon glyphicon-chevron-up"></i>',
+                sortDownHtml: '<i class="glyphicon glyphicon-chevron-down"></i>',
+                sortDefaultHtml: '<i class="glyphicon glyphicon-sort"></i>',
+                tableHtml: '<table class="table table-striped">',
                 tableHeadHtml: '<thead>',
                 tableHeadTrHtml: '<tr>',
-                tableHeadThHtml: '<th>',
+                tableHeadThHtml: '<th style="white-space: nowrap;">',
                 tableBodyHtml: '<tbody>',
                 tableBodyTrHtml: '<tr>',
                 tableBodyTdHtml: '<td>',
+                pagerHtml: '<div class="btn-group smarty-grid-pager"></div>',
                 pagerPrevHtml: function (href) {
                     if (href !== false) {
-                        return '<span><a href=\'' + href + '\'>&laquo;</a></span>';
+                        return '<div class="btn btn-default"><a href=\'' + href + '\'>&laquo;</a></div>';
                     } else {
-                        return '<span>&laquo;</span>';
+                        return '<div class="btn btn-default disabled"><a href="javascript:void(0);">&laquo;</a></div>';
                     }
                 },
                 pagerNextHtml: function (href) {
                     if (href !== false) {
-                        return '<span><a href=\'' + href + '\'>&raquo;</a></span>';
+                        return '<div class="btn btn-default"><a href=\'' + href + '\'>&raquo;</a></div>';
                     } else {
-                        return '<span>&raquo;</span>';
+                        return '<div class="btn btn-default disabled"><a href="javascript:void(0);">&raquo;</a></div>';
                     }
                 },
                 pagerStartHtml: function (href) {
                     if (href !== false) {
-                        return '<span><a href=\'' + href + '\'>&#124;&laquo;</a></span>';
+                        return '<div class="btn btn-default"><a href=\'' + href + '\'>&#124;&laquo;</a></div>';
                     } else {
-                        return '<span>&#124;&laquo;</span>';
+                        return '<div class="btn btn-default disabled"><a href="javascript:void(0);">&#124;&laquo;</a></div>';
                     }
                 },
                 pagerEndHtml: function (href) {
                     if (href !== false) {
-                        return '<span><a href=\'' + href + '\'>&raquo;&#124;</a></span>';
+                        return '<div class="btn btn-default"><a href=\'' + href + '\'>&raquo;&#124;</a></div>';
                     } else {
-                        return '<span>&raquo;&#124;</span>';
+                        return '<div class="btn btn-default disabled"><a href="javascript:void(0);">&raquo;&#124;</a></div>';
                     }
                 },
                 pagerNoHtml: function (href, no) {
                     if (href !== false) {
-                        return '<span><a href=\'' + href + '\'>' + no + '</a></span>';
+                        return '<div class="btn btn-default"><a href=\'' + href + '\'>' + no + '</a></div>';
                     } else {
-                        return '<span>' + no + '</span>';
+                        return '<div class="btn btn-default disabled"><a href="javascript:void(0);">' + no + '</a></div>';
                     }
                 }
             }
@@ -169,6 +218,8 @@ jQuery.fn.smartyGrid = function(args, params) {
                     jQuery.extend(config, config.theme);
                 } else if (typeof(config.theme) === 'string' && typeof(self.themes[config.theme]) !== 'undefined') {
                     jQuery.extend(config, self.themes[config.theme]);
+                } else {
+                    jQuery.extend(config, self.themes.default);
                 }
 
                 // restore hash
