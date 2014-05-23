@@ -17,9 +17,9 @@ GET http://domain/web-service.php?offset=20&size=5&sorts[title]=DESC&columns[]=u
 | :-------------   | :-------------    | :------ |
 | size             | Integer           | Size of return rows |
 | offset           | Integer           | Start offset of table |
-| columns[]        | [String]          | Return columns |
-| search[]         | [String]          | It's search keywork |
-| equals[%Colume%] | [String]          | Column value filter |
+| columns[]        | String[]          | Return columns |
+| search[]         | String[]          | It's search keywork |
+| equals[%Colume%] | String[]          | Column value filter |
 | sorts[%Colume%]  | String (ASC&#124;DESC) | Sort column and rule |
 
 #### HTTP Response ###
