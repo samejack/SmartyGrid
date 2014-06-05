@@ -2,9 +2,9 @@
  * jQuery SmartyGrid Plugin 1.0
  *
  * @author sj
- * @link https://github.com/smajeack/SmartyGrid
+ * @link https://github.com/samejack/SmartyGrid
  * @copyright Copyright 2013 SJ
- * @version 1.0
+ * @version 1.0.0
  * @license Apache License Version 2.0 (https://github.com/samejack/SmartyGrid/blob/master/LICENSE)
  */
 jQuery.fn.smartyGrid = function(args, params) {
