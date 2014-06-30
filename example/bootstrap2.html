@@ -1,0 +1,42 @@
+<html>
+<head>
+    <title>Smarty Grid Example (Bootstrap 2 Theme)</title>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/2.3.2/css/bootstrap.min.css">
+</head>
+<body>
+
+<div class="container">
+    <h2>Smarty Grid Example (Bootstrap 2 Theme)</h2>
+    <div id="my-grid"></div>
+</div>
+
+<!-- Include JavaScript -->
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script type="text/javascript" src="http://netdna.bootstrapcdn.com/bootstrap/2.3.2/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../src/js/jquery.plugin.smartyGrid.js"></script>
+<script type="text/javascript">
+    $(document).ready( function () {
+        // display grid
+        $('#my-grid').smartyGrid({
+            uri: './web-service/list.json',
+            pager: true,
+            searchFields: ['username', 'realname', 'email'],
+            sortField: 1,
+            order: 'ASC',
+            pagesize: 10,
+            theme: 'bootstrap2',
+            columns: [
+                {title: 'CHECKBOX', index: 'username'},
+                {title: 'Name (Username)', index: ['realname', 'username'], sortable: true, render: function (values) {
+                    return '<td>' + values.realname + ' (' + values.username + ')</td>';
+                }},
+                {title: 'Title', index: 'title', sortable: true},
+                {title: 'Email', index: 'email', sortable: true},
+                {title: 'Create Time', index: 'create_time'}
+            ]
+        }).smartyGrid('render');
+    });
+</script>
+</body>
+</html>

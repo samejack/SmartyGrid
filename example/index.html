@@ -1,0 +1,65 @@
+<html>
+<head>
+    <title>Smarty Grid Example (Bootstrap)</title>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/2.3.2/css/bootstrap.min.css">
+</head>
+<body>
+
+<h2>Smarty Grid Example</h2>
+<input type="text" name="search" id="search-field" />
+<button id="search-btn">Search</button>
+<div id="my-grid"></div>
+
+<!-- Include JavaScript -->
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script type="text/javascript" src="http://netdna.bootstrapcdn.com/bootstrap/2.3.2/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../src/js/jquery.plugin.smartyGrid.js"></script>
+<script type="text/javascript">
+    $(document).ready( function () {
+        // display grid
+        $('#my-grid').smartyGrid({
+            pager: true,
+            searchFields: ['username', 'realname', 'email'],
+            sortField: 1,
+            order: 'ASC',
+            pagesize: 8,
+            columns: [
+                {title: 'CHECKBOX', index: 'username'},
+                {title: 'Name (Username)', index: ['realname', 'username'], sortable: true, render: function (values) {
+                    return '<td>' + values.realname + ' (' + values.username + ')</td>';
+                }},
+                {title: 'Title', index: 'title', sortable: true},
+                {title: 'Email', index: 'email', sortable: true},
+                {title: 'Create Time', index: 'create_time'}
+            ],
+            // static sample data
+            data: [
+                {"realname":"SJ C.","username":"sj","title":"Bug Maker","email":"sj@gg.com","create_time":"2014-05-05"},
+                {"realname":"Gambling God","username":"david","title":"Developer","email":"david@yahoo.com","create_time":"2014-05-02"},
+                {"realname":"Fins Dodo","username":"fins","title":"Developer","email":"fins@msn.com","create_time":"2014-05-01"},
+                {"realname":"Steve Jobs","username":"steve","title":"CEO","email":"jobs@heaven.com","create_time":"2014-05-01"},
+                {"realname":"Hot Dog","username":"dog","title":"-","email":"dogman@gmail.com","create_time":"2013-03-05"},
+                {"realname":"Abel","username":"abel","title":"Staff","email":"abel@yahoo.com","create_time":"2011-05-01"},
+                {"realname":"Bill Lee","username":"bill","title":"Staff","email":"ashley@heaven.com","create_time":"2014-05-05"},
+                {"realname":"Bob","username":"bob","title":"Staff","email":"bob@heaven.com","create_time":"2014-05-01"},
+                {"realname":"Garfield","username":"garfield","title":"Coder","email":"garfield@heaven.com","create_time":"2014-03-05"},
+                {"realname":"Ashley","username":"player","title":"Staff","email":"ashley@heaven.com","create_time":"2014-05-05"},
+                {"realname":"Carry Lin","username":"carry_lin","title":"Coder","email":"carry@heaven.com","create_time":"2011-05-05"},
+                {"realname":"Charlotte","username":"charlotte","title":"Designer","email":"joy@heaven.com","create_time":"2014-05-05"}
+            ]
+        }).smartyGrid('render');
+
+        // bind event
+        $('#search-btn').click(function () {
+            var keyword = $('#search-field').val();
+            if (keyword === '') {
+                $('#my-grid').smartyGrid('reset').smartyGrid('render');
+            } else {
+                $('#my-grid').smartyGrid('search', keyword);
+            }
+        });
+    });
+</script>
+</body>
+</html>
