@@ -48,9 +48,9 @@ Web service must return the JSON format (Web + Json = Good), Content-type = appl
 * Bootstrap 2
 * Bootstrap 3
 
-### Version
+### Version & Release Note
 
-1.0
+1.0.0
 
 ### License
 
