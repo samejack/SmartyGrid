@@ -26,6 +26,7 @@ jQuery.fn.smartyGrid = function(args, params) {
     return this.each(function () {
         var self = this;
 
+        // hashchange auto reload girdlist
         if ($(this).data('SMARTY_GRID_HASH_FN') === undefined) {
             $(window).on('hashchange', function () {
                 self.render();
@@ -148,9 +149,9 @@ jQuery.fn.smartyGrid = function(args, params) {
                 pagerHtml: '<div class="btn-group smarty-grid-pager"></div>',
                 pagerPrevHtml: function (href) {
                     if (href !== false) {
-                        return '<a class="btn" href=\'' + href + '\'>&laquo;</a>';
+                        return '<a class="btn btn-default" href=\'' + href + '\'>&laquo;</a>';
                     } else {
-                        return '<a class="btn disabled" href="javascript:void(0);">&laquo;</a>';
+                        return '<a class="btn btn-default disabled" href="javascript:void(0);">&laquo;</a>';
                     }
                 },
                 pagerNextHtml: function (href) {
@@ -266,12 +267,17 @@ jQuery.fn.smartyGrid = function(args, params) {
             } else if (typeof(args) === 'string' && args === 'search') {
                 var config = $(this).data('SMARTY_GRID_CONFIG');
                 // run search command
-                if (typeof(params) !== 'string') {
-                    this.log('Search keyword not found.');
-                } else {
+                if (typeof(params) === 'string') {
                     config.searchKeyword = params;
+                    config.pagecode = 1;
+                    this.setHash(config);
+                } else if (typeof(config.searchInput) === 'object') {
+                    config.searchKeyword = $(config.searchInput).val();
+                    config.pagecode = 1;
+                    this.setHash(config);
+                } else {
+                    this.log('Search keyword not found.');
                 }
-                this.setHash(config);
             } else if (typeof(args) === 'string' && args === 'pagesize') {
                 var config = $(this).data('SMARTY_GRID_CONFIG');
                 // run search command
@@ -317,6 +323,8 @@ jQuery.fn.smartyGrid = function(args, params) {
 
             if (typeof(config.searchKeyword) === 'string' && config.searchFields.length > 0) {
                 hashObject.searchKeyword = obj.searchKeyword;
+            } else {
+                delete obj.searchKeyword;
             }
             if (obj.sortField !== undefined && config.columns[obj.sortField] !== undefined) {
                 hashObject.sortField = obj.sortField;
@@ -432,10 +440,10 @@ jQuery.fn.smartyGrid = function(args, params) {
                 }
 
                 //display first button
-                if (config.pagecode === first) {
+                if (config.pagecode === first || config.total === 0) {
                     html += config.pagerStartHtml(false);
                     html += config.pagerPrevHtml(false);
-                }else{
+                } else {
                     hashObj.pagecode = first;
                     html += config.pagerStartHtml('#' + JSON.stringify(hashObj));
                     hashObj.pagecode = config.pagecode - 1;
@@ -445,8 +453,8 @@ jQuery.fn.smartyGrid = function(args, params) {
                 //display middle button
                 start = first;
                 end = last;
-                if (Math.ceil(config.total / config.pagesize)>config.delta) {
-                    if (config.pagecode - Math.ceil(config.delta / 2)<first) {
+                if (Math.ceil(config.total / config.pagesize) > config.delta) {
+                    if (config.pagecode - Math.ceil(config.delta / 2) < first) {
                         end = config.delta;
                     } else if ((config.pagecode + Math.ceil(config.delta / 2) - 1) > last ) {
                         start = last - config.delta + 1;
@@ -465,10 +473,10 @@ jQuery.fn.smartyGrid = function(args, params) {
                 }
 
                 //display last button
-                if( config.pagecode === last ){
+                if (config.pagecode === last || config.total === 0) {
                     html += config.pagerNextHtml(false);
                     html += config.pagerEndHtml(false);
-                }else{
+                } else {
                     hashObj.pagecode = config.pagecode + 1;
                     html += config.pagerNextHtml('#' + JSON.stringify(hashObj));
                     hashObj.pagecode = last;
@@ -482,7 +490,7 @@ jQuery.fn.smartyGrid = function(args, params) {
             }
         };
 
-        this.renderCheckbox = function(value, model, config, index){
+        this.renderCheckbox = function (value, model, config, index) {
             var name = 'id', html = '';
             if (config.index !== undefined) {
                 name = config.index;
@@ -496,7 +504,7 @@ jQuery.fn.smartyGrid = function(args, params) {
             return html;
         };
 
-        this.renderRows = function(config, model){
+        this.renderRows = function (config, model) {
             var columns = config.columns, html = '', value, i, j, k, string = '', arr = [];
             $(this).find('tbody').children().remove();
             for (i in model) {
@@ -572,13 +580,18 @@ jQuery.fn.smartyGrid = function(args, params) {
             var config = $(this).data('SMARTY_GRID_CONFIG'),
                 uri = config.uri,
                 parent = this,
-                offset = 0,
+                offset = null,
                 index = null,
                 i = null,
                 j = null,
                 data,
                 queryObject,
                 pagecode;
+
+            // asign keyword
+            if (typeof(config.searchInput) === 'object' && typeof(config.searchKeyword) === 'string' && config.searchKeyword.length > 0) {
+                $(config.searchInput).val(config.searchKeyword);
+            }
 
             // check page code
             pagecode = parseInt(this.getHash().pagecode, 10);
