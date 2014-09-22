@@ -302,12 +302,21 @@ jQuery.fn.smartyGrid = function(args, params) {
             }
         }
 
+        /**
+         * Log message
+         *
+         * @param {String} message
+         */
         this.log = function (message) {
             if (typeof(console.log) === 'function') {
                 console.log(message);
             }
         };
 
+        /**
+         * Get URL hash string
+         * @returns {String}
+         */
         this.getHash = function () {
             if (window.location.hash.substr(1) !== '') {
                 return jQuery.parseJSON(window.location.hash.substr(1));
@@ -315,8 +324,13 @@ jQuery.fn.smartyGrid = function(args, params) {
             return null;
         };
 
+        /**
+         * Stringify and set to URL hash
+         *
+         * @param obj
+         */
         this.setHash = function (obj) {
-            var hashObject = {}, config = $(this).data('SMARTY_GRID_CONFIG');
+            var hashObject = {}, config = $(this).data('SMARTY_GRID_CONFIG'), json;
 
             hashObject.pagecode = obj.pagecode;
             hashObject.pagesize = obj.pagesize;
@@ -330,8 +344,14 @@ jQuery.fn.smartyGrid = function(args, params) {
                 hashObject.sortField = obj.sortField;
                 hashObject.order = obj.order;
             }
+            json = JSON.stringify(hashObject);
 
-            window.location.hash = '#' + JSON.stringify(hashObject);
+            if (json === JSON.stringify(this.getHash())) {
+                this.log('Hash is equal, force reload.');
+                this.render();
+            } else {
+                window.location.hash = '#' + JSON.stringify(hashObject);
+            }
         };
 
         this.renderHeader = function () {
@@ -677,7 +697,6 @@ jQuery.fn.smartyGrid = function(args, params) {
                 }
             } else {
                 //call ajax to get data
-
                 //ajax call
                 $.getJSON(uri, queryObject, function (json) {
                     if (typeof(json) !== 'object') {
