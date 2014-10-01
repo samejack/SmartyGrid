@@ -354,8 +354,11 @@ jQuery.fn.smartyGrid = function(args, params) {
             }
         };
 
+        /**
+         * Render table headers
+         */
         this.renderHeader = function () {
-            var i = null, config = $(this).data('SMARTY_GRID_CONFIG'), columns = config.columns, html;
+            var i = null, config = $(this).data('SMARTY_GRID_CONFIG'), columns = config.columns, html, th;
 
             // remove grid children and make header
             $(this).children().remove();
@@ -373,12 +376,11 @@ jQuery.fn.smartyGrid = function(args, params) {
 
             for (i in columns) {
                 if (columns.hasOwnProperty(i)) {
-                    html = '';
                     if (columns[i].title === 'HIDDEN') {
                         continue;
                     } else if (columns[i].title === 'CHECKBOX') {
                         // render checkbox selector
-                        html += config.tableHeadThHtml + config.checkBoxHtml + '</th>';
+                        html = config.tableHeadThHtml + config.checkBoxHtml + '</th>';
                         $(this).find('thead tr:first').append(html);
                         $(this).find('thead tr th:last').addClass('smarty-grid-th-' + i);
                         $('.smarty-grid-checkbox-all').click(function(){
@@ -390,10 +392,10 @@ jQuery.fn.smartyGrid = function(args, params) {
                         });
                         continue;
                     } else {
-                        html += config.tableHeadThHtml + columns[i].title;
+                        html = config.tableHeadThHtml + columns[i].title;
                         if (columns[i].sortable) {
                             html += '<span class="sort-icon">';
-                            if (typeof(config.sortField) !== 'undefined' && config.sortField === parseInt(i, 10)) {
+                            if (typeof(config.sortField) !== 'undefined' && config.sortField === columns[i].index) {
                                 if (config.order === 'ASC') {
                                     html += config.sortUpHtml;
                                 } else {
@@ -406,20 +408,24 @@ jQuery.fn.smartyGrid = function(args, params) {
                         }
                         html += '</th>';
                         $(this).find('thead tr:first').append(html);
-                        $(this).find('thead tr th:last').addClass('smarty-grid-th-' + i);
+                        th = $(this).find('thead tr th:last');
+                        th.addClass('smarty-grid-th-' + i);
+                        th.data('index', columns[i].index);
 
                         // bind sort event
                         if (columns[i].sortable) {
-                            $(this).find('thead tr th:last').click(function(){
+                            // save index value
+                            $('smarty-grid-th-' + i + ' .sort-icon').data('index', columns[i].index);
+                            th.click(function () {
                                 var config = $(this).parents('table').parent().data('SMARTY_GRID_CONFIG'),
-                                    toSortField = $(this).parent().children().index(this),
+                                    toSortField = $(this).data('index'),
                                     hashObj;
 
                                 // reset all sort icon
                                 $(this).parent().find('.sort-icon').html(config.sortDefaultHtml);
 
                                 config.sortField = toSortField;
-                                if (typeof(config.sortField) !== 'undefined' && config.sortField === toSortField) {
+                                if (typeof(config.sortField) !== 'undefined') {
                                     if (config.order === 'ASC') {
                                         config.order = 'DESC';
                                         $(this).find('.sort-icon').html(config.sortDownHtml);
@@ -629,18 +635,21 @@ jQuery.fn.smartyGrid = function(args, params) {
                 size: config.pagesize,
                 pagecode: config.pagecode
             };
-            if (typeof(config.sortField) !== 'undefined' && typeof(config.columns[config.sortField]) !== 'undefined') {
+
+            // make sort column
+            if (typeof(config.sortField) === 'object') {
+                // multiple columns sort
                 queryObject.sorts = {};
-                if (typeof(config.columns[config.sortField].index) === 'object') {
-                    for (index in config.columns[config.sortField].index) {
-                        if (config.columns[config.sortField].index.hasOwnProperty(index)) {
-                            queryObject.sorts[config.columns[config.sortField].index[index]] = config.order;
-                        }
-                    }
-                } else {
-                    queryObject.sorts[config.columns[config.sortField].index] = config.order;
+                for (index in config.sortField) {
+                    queryObject.sorts[config.sortField[index]] = config.order;
                 }
+            } else if (typeof(config.sortField) === 'string') {
+                // one column sort
+                queryObject.sorts = {};
+                queryObject.sorts[config.sortField] = config.order;
             }
+
+            // search
             if (typeof(config.searchKeyword) === 'string' && config.searchKeyword.length > 0 && config.searchFields.length > 0) {
                 queryObject.search = {};
                 for (index in config.searchFields) {
