@@ -26,6 +26,7 @@ jQuery.fn.smartyGrid = function(args, params) {
     return this.each(function () {
         var self = this;
 
+        // hashchange auto reload girdlist
         if ($(this).data('SMARTY_GRID_HASH_FN') === undefined) {
             $(window).on('hashchange', function () {
                 self.render();
@@ -148,9 +149,9 @@ jQuery.fn.smartyGrid = function(args, params) {
                 pagerHtml: '<div class="btn-group smarty-grid-pager"></div>',
                 pagerPrevHtml: function (href) {
                     if (href !== false) {
-                        return '<a class="btn" href=\'' + href + '\'>&laquo;</a>';
+                        return '<a class="btn btn-default" href=\'' + href + '\'>&laquo;</a>';
                     } else {
-                        return '<a class="btn disabled" href="javascript:void(0);">&laquo;</a>';
+                        return '<a class="btn btn-default disabled" href="javascript:void(0);">&laquo;</a>';
                     }
                 },
                 pagerNextHtml: function (href) {
@@ -266,12 +267,17 @@ jQuery.fn.smartyGrid = function(args, params) {
             } else if (typeof(args) === 'string' && args === 'search') {
                 var config = $(this).data('SMARTY_GRID_CONFIG');
                 // run search command
-                if (typeof(params) !== 'string') {
-                    this.log('Search keyword not found.');
-                } else {
+                if (typeof(params) === 'string') {
                     config.searchKeyword = params;
+                    config.pagecode = 1;
+                    this.setHash(config);
+                } else if (typeof(config.searchInput) === 'object') {
+                    config.searchKeyword = $(config.searchInput).val();
+                    config.pagecode = 1;
+                    this.setHash(config);
+                } else {
+                    this.log('Search keyword not found.');
                 }
-                this.setHash(config);
             } else if (typeof(args) === 'string' && args === 'pagesize') {
                 var config = $(this).data('SMARTY_GRID_CONFIG');
                 // run search command
@@ -296,38 +302,63 @@ jQuery.fn.smartyGrid = function(args, params) {
             }
         }
 
+        /**
+         * Log message
+         *
+         * @param {String} message
+         */
         this.log = function (message) {
             if (typeof(console.log) === 'function') {
                 console.log(message);
             }
         };
 
+        /**
+         * Get URL hash string
+         * @returns {String}
+         */
         this.getHash = function () {
             if (window.location.hash.substr(1) !== '') {
-                return jQuery.parseJSON(window.location.hash.substr(1));
+                return jQuery.parseJSON(decodeURIComponent(window.location.hash.substr(1)));
             }
             return null;
         };
 
+        /**
+         * Stringify and set to URL hash
+         *
+         * @param obj
+         */
         this.setHash = function (obj) {
-            var hashObject = {}, config = $(this).data('SMARTY_GRID_CONFIG');
+            var hashObject = {}, config = $(this).data('SMARTY_GRID_CONFIG'), json;
 
             hashObject.pagecode = obj.pagecode;
             hashObject.pagesize = obj.pagesize;
 
             if (typeof(config.searchKeyword) === 'string' && config.searchFields.length > 0) {
                 hashObject.searchKeyword = obj.searchKeyword;
+            } else {
+                delete obj.searchKeyword;
             }
             if (obj.sortField !== undefined && config.columns[obj.sortField] !== undefined) {
                 hashObject.sortField = obj.sortField;
                 hashObject.order = obj.order;
             }
+            json = JSON.stringify(hashObject);
 
-            window.location.hash = '#' + JSON.stringify(hashObject);
+            if (json === JSON.stringify(this.getHash())) {
+                this.log('Hash is equal, force reload.');
+                this.render();
+            } else {
+                window.location.hash = '#' + JSON.stringify(hashObject);
+            }
         };
 
+        /**
+         * Render table headers
+         */
         this.renderHeader = function () {
-            var i = null, config = $(this).data('SMARTY_GRID_CONFIG'), columns = config.columns, html;
+            var i = null, config = $(this).data('SMARTY_GRID_CONFIG'), columns = config.columns, html, th;
 
             // remove grid children and make header
             $(this).children().remove();
@@ -345,12 +376,11 @@ jQuery.fn.smartyGrid = function(args, params) {
 
             for (i in columns) {
                 if (columns.hasOwnProperty(i)) {
-                    html = '';
                     if (columns[i].title === 'HIDDEN') {
                         continue;
                     } else if (columns[i].title === 'CHECKBOX') {
                         // render checkbox selector
-                        html += config.tableHeadThHtml + config.checkBoxHtml + '</th>';
+                        html = config.tableHeadThHtml + config.checkBoxHtml + '</th>';
                         $(this).find('thead tr:first').append(html);
                         $(this).find('thead tr th:last').addClass('smarty-grid-th-' + i);
                         $('.smarty-grid-checkbox-all').click(function(){
@@ -362,10 +392,10 @@ jQuery.fn.smartyGrid = function(args, params) {
                         });
                         continue;
                     } else {
-                        html += config.tableHeadThHtml + columns[i].title;
+                        html = config.tableHeadThHtml + columns[i].title;
                         if (columns[i].sortable) {
                             html += '<span class="sort-icon">';
-                            if (typeof(config.sortField) !== 'undefined' && config.sortField === parseInt(i, 10)) {
+                            if (typeof(config.sortField) !== 'undefined' && config.sortField === columns[i].index) {
                                 if (config.order === 'ASC') {
                                     html += config.sortUpHtml;
                                 } else {
@@ -378,20 +408,24 @@ jQuery.fn.smartyGrid = function(args, params) {
                         }
                         html += '</th>';
                         $(this).find('thead tr:first').append(html);
-                        $(this).find('thead tr th:last').addClass('smarty-grid-th-' + i);
+                        th = $(this).find('thead tr th:last');
+                        th.addClass('smarty-grid-th-' + i);
+                        th.data('index', columns[i].index);
 
                         // bind sort event
                         if (columns[i].sortable) {
-                            $(this).find('thead tr th:last').click(function(){
+                            // save index value
+                            $('smarty-grid-th-' + i + ' .sort-icon').data('index', columns[i].index);
+                            th.click(function () {
                                 var config = $(this).parents('table').parent().data('SMARTY_GRID_CONFIG'),
-                                    toSortField = $(this).parent().children().index(this),
+                                    toSortField = $(this).data('index'),
                                     hashObj;
 
                                 // reset all sort icon
                                 $(this).parent().find('.sort-icon').html(config.sortDefaultHtml);
 
                                 config.sortField = toSortField;
-                                if (typeof(config.sortField) !== 'undefined' && config.sortField === toSortField) {
+                                if (typeof(config.sortField) !== 'undefined') {
                                     if (config.order === 'ASC') {
                                         config.order = 'DESC';
                                         $(this).find('.sort-icon').html(config.sortDownHtml);
@@ -432,10 +466,10 @@ jQuery.fn.smartyGrid = function(args, params) {
                 }
 
                 //display first button
-                if (config.pagecode === first) {
+                if (config.pagecode === first || config.total === 0) {
                     html += config.pagerStartHtml(false);
                     html += config.pagerPrevHtml(false);
-                }else{
+                } else {
                     hashObj.pagecode = first;
                     html += config.pagerStartHtml('#' + JSON.stringify(hashObj));
                     hashObj.pagecode = config.pagecode - 1;
@@ -445,8 +479,8 @@ jQuery.fn.smartyGrid = function(args, params) {
                 //display middle button
                 start = first;
                 end = last;
-                if (Math.ceil(config.total / config.pagesize)>config.delta) {
-                    if (config.pagecode - Math.ceil(config.delta / 2)<first) {
+                if (Math.ceil(config.total / config.pagesize) > config.delta) {
+                    if (config.pagecode - Math.ceil(config.delta / 2) < first) {
                         end = config.delta;
                     } else if ((config.pagecode + Math.ceil(config.delta / 2) - 1) > last ) {
                         start = last - config.delta + 1;
@@ -465,10 +499,10 @@ jQuery.fn.smartyGrid = function(args, params) {
                 }
 
                 //display last button
-                if( config.pagecode === last ){
+                if (config.pagecode === last || config.total === 0) {
                     html += config.pagerNextHtml(false);
                     html += config.pagerEndHtml(false);
-                }else{
+                } else {
                     hashObj.pagecode = config.pagecode + 1;
                     html += config.pagerNextHtml('#' + JSON.stringify(hashObj));
                     hashObj.pagecode = last;
@@ -482,7 +516,7 @@ jQuery.fn.smartyGrid = function(args, params) {
             }
         };
 
-        this.renderCheckbox = function(value, model, config, index){
+        this.renderCheckbox = function (value, model, config, index) {
             var name = 'id', html = '';
             if (config.index !== undefined) {
                 name = config.index;
@@ -496,7 +530,7 @@ jQuery.fn.smartyGrid = function(args, params) {
             return html;
         };
 
-        this.renderRows = function(config, model){
+        this.renderRows = function (config, model) {
             var columns = config.columns, html = '', value, i, j, k, string = '', arr = [];
             $(this).find('tbody').children().remove();
             for (i in model) {
@@ -572,13 +606,18 @@ jQuery.fn.smartyGrid = function(args, params) {
             var config = $(this).data('SMARTY_GRID_CONFIG'),
                 uri = config.uri,
                 parent = this,
-                offset = 0,
+                offset = null,
                 index = null,
                 i = null,
                 j = null,
                 data,
                 queryObject,
                 pagecode;
+
+            // asign keyword
+            if (typeof(config.searchInput) === 'object' && typeof(config.searchKeyword) === 'string' && config.searchKeyword.length > 0) {
+                $(config.searchInput).val(config.searchKeyword);
+            }
 
             // check page code
             pagecode = parseInt(this.getHash().pagecode, 10);
@@ -596,18 +635,21 @@ jQuery.fn.smartyGrid = function(args, params) {
                 size: config.pagesize,
                 pagecode: config.pagecode
             };
-            if (typeof(config.sortField) !== 'undefined' && typeof(config.columns[config.sortField]) !== 'undefined') {
+
+            // make sort column
+            if (typeof(config.sortField) === 'object') {
+                // multiple columns sort
                 queryObject.sorts = {};
-                if (typeof(config.columns[config.sortField].index) === 'object') {
-                    for (index in config.columns[config.sortField].index) {
-                        if (config.columns[config.sortField].index.hasOwnProperty(index)) {
-                            queryObject.sorts[config.columns[config.sortField].index[index]] = config.order;
-                        }
-                    }
-                } else {
-                    queryObject.sorts[config.columns[config.sortField].index] = config.order;
+                for (index in config.sortField) {
+                    queryObject.sorts[config.sortField[index]] = config.order;
                 }
+            } else if (typeof(config.sortField) === 'string') {
+                // one column sort
+                queryObject.sorts = {};
+                queryObject.sorts[config.sortField] = config.order;
             }
+
+            // search
             if (typeof(config.searchKeyword) === 'string' && config.searchKeyword.length > 0 && config.searchFields.length > 0) {
                 queryObject.search = {};
                 for (index in config.searchFields) {
@@ -664,7 +706,6 @@ jQuery.fn.smartyGrid = function(args, params) {
                 }
             } else {
                 //call ajax to get data
-
                 //ajax call
                 $.getJSON(uri, queryObject, function (json) {
                     if (typeof(json) !== 'object') {
