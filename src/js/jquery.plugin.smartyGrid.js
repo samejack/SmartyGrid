@@ -319,7 +319,7 @@ jQuery.fn.smartyGrid = function(args, params) {
          */
         this.getHash = function () {
             if (window.location.hash.substr(1) !== '') {
-                return jQuery.parseJSON(window.location.hash.substr(1));
+                return jQuery.parseJSON(decodeURIComponent(window.location.hash.substr(1)));
             }
             return null;
         };
