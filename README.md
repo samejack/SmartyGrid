@@ -3,6 +3,8 @@ SmartyGrid
 
 SmartyGrid is a jQuery plugin and provides a user interface component to build table grid quickly. ([GitHub WebSite](https://samejack.github.com/SmartyGrid))
 
+[Demo](http://samejack.github.io/SmartyGrid/example/bootstrap3.html)
+
 ### AJAX WebService Specification
 
 #### HTTP Request
