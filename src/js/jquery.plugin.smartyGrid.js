@@ -1,5 +1,5 @@
 /*
- * jQuery SmartyGrid Plugin 1.2
+ * jQuery SmartyGrid Plugin 1.3
  *
  * @author sj
  * @link https://github.com/samejack/SmartyGrid
@@ -261,20 +261,16 @@ jQuery.fn.smartyGrid = function (args, params) {
       } else if (typeof(args) === 'string' && args === 'search') {
         var config = $(this).data('SMARTY_GRID_CONFIG');
         // run search command
-        if (typeof(params) === 'string') {
+        if (typeof(params) !== 'string') {
+          this.log('Search keyword not found. Second param not defined.');
+        } else {
           config.searchKeyword = params;
           config.pageCode = 1;
           this.setHash(config);
-        } else if (typeof(config.searchInput) === 'object') {
-          config.searchKeyword = $(config.searchInput).val();
-          config.pageCode = 1;
-          this.setHash(config);
-        } else {
-          this.log('Search keyword not found.');
         }
       } else if (typeof(args) === 'string' && args === 'pageSize') {
         var config = $(this).data('SMARTY_GRID_CONFIG');
-        // run search command
+        // run page command
         if (typeof(params) !== 'number') {
           this.log('Page size format error.');
         } else {
@@ -409,7 +405,6 @@ jQuery.fn.smartyGrid = function (args, params) {
                     ) {
                       found = true;
                     } else if (typeof(columns[i].index) === 'object') {
-                      console.log(columns[i].index);
                       for (var k in columns[i].index) {
                         if (config.sortFields[j] === columns[i].index[k]) {
                           found = true;
@@ -640,11 +635,6 @@ jQuery.fn.smartyGrid = function (args, params) {
         data,
         queryObject,
         pageCode;
-
-      // asign keyword
-      if (typeof(config.searchInput) === 'object' && typeof(config.searchKeyword) === 'string' && config.searchKeyword.length > 0) {
-        $(config.searchInput).val(config.searchKeyword);
-      }
 
       // check page code
       pageCode = parseInt(this.getHash().pageCode, 10);
