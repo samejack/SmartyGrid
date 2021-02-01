@@ -23,6 +23,16 @@ jQuery.fn.smartyGrid = function (args, params) {
     };
   }
 
+  // public method
+  var methods = {
+    config: function () {
+      return $(this).data('SMARTY_GRID_CONFIG');
+    }
+  };
+  if (methods[args]) {
+    return methods[args].apply(this, Array.prototype.slice.call(arguments, 1));
+  }
+
   return this.each(function () {
     var self = this;
 
@@ -189,7 +199,7 @@ jQuery.fn.smartyGrid = function (args, params) {
       // 預設動作
       if (typeof(args) === 'object') {
         // update config
-        var config = $(this).data('SMARTY_GRID_CONFIG'), i = null;
+        var config = $(this).data('SMARTY_GRID_CONFIG');
         if (typeof(config) === 'undefined' || config === null) {
           config = {
             columns: [],
@@ -208,7 +218,8 @@ jQuery.fn.smartyGrid = function (args, params) {
             searchFields: [],
             sortFields: [],
             searchKeyword: undefined,
-            ajaxParams: {}
+            ajaxParams: {},
+            appendQueryObj: {},
           };
         }
 
@@ -277,6 +288,15 @@ jQuery.fn.smartyGrid = function (args, params) {
           config.pageSize = params;
         }
         this.setHash(config);
+      } else if (typeof(args) === 'string' && args === 'appendQueryObj') {
+        var config = $(this).data('SMARTY_GRID_CONFIG');
+        // run page command
+        if (typeof(params) !== 'object') {
+          this.log('Page size format error.');
+        } else {
+          config.appendQueryObj = params;
+        }
+        this.setHash(config);
       } else if (typeof(args) === 'string' && args === 'reset') {
         // reset config and grid data
         $(this).data('SMARTY_GRID_CONFIG', $(this).data('SMARTY_GRID_DEFAULT_CONFIG'));
@@ -320,7 +340,7 @@ jQuery.fn.smartyGrid = function (args, params) {
      * @param obj
      */
     this.setHash = function (obj) {
-      var hashObject = {}, config = $(this).data('SMARTY_GRID_CONFIG'), json;
+      var hashObject = {}, config = $(this).data('SMARTY_GRID_CONFIG'), hashString;
 
       hashObject.pageCode = obj.pageCode;
       hashObject.pageSize = obj.pageSize;
@@ -329,6 +349,12 @@ jQuery.fn.smartyGrid = function (args, params) {
         hashObject.searchKeyword = obj.searchKeyword;
       } else {
         delete obj.searchKeyword;
+      }
+
+      if (typeof(config.appendQueryObj) === 'object' && config.appendQueryObj !== null) {
+        hashObject.appendQueryObj = obj.appendQueryObj;
+      } else {
+        delete obj.appendQueryObj;
       }
 
       if (typeof(obj.sortFields) === 'object') {
@@ -341,13 +367,13 @@ jQuery.fn.smartyGrid = function (args, params) {
         hashObject.order = obj.order;
       }
 
-      json = JSON.stringify(hashObject);
-
-      if (json === JSON.stringify(this.getHash())) {
+      hashString = JSON.stringify(hashObject);
+  
+      if (hashString === JSON.stringify(this.getHash())) {
         this.log('Hash is equal, force reload.');
         this.render();
       } else {
-        window.location.hash = '#' + JSON.stringify(hashObject);
+        window.location.hash = '#' + hashString;
       }
     };
 
@@ -470,7 +496,7 @@ jQuery.fn.smartyGrid = function (args, params) {
 
     // render pager component
     this.renderPager = function (config) {
-      var parent = this, i, start, end, html = '', first = 1, last = Math.ceil(config.total / config.pageSize), hashObj;
+      var i, start, end, html = '', first = 1, last = Math.ceil(config.total / config.pageSize), hashObj;
 
       $(this).find(config.pagerQuery).children().remove();
 
@@ -624,8 +650,8 @@ jQuery.fn.smartyGrid = function (args, params) {
 
     this.render = function () {
       //load configuration
-      var config = $(this).data('SMARTY_GRID_CONFIG'),
-        uri = config.uri,
+      var config = $.extend($(this).data('SMARTY_GRID_CONFIG'), this.getHash()),
+        uri = config.uri + (config.appendQueryObj !== null && $.param(config.appendQueryObj).length > 0 ? '&' + $.param(config.appendQueryObj) : ''),
         apiCallback = config.apiCallback,
         parent = this,
         offset = null,
@@ -770,5 +796,7 @@ jQuery.fn.smartyGrid = function (args, params) {
 
     // invoke main function
     this.main(args, params);
+
   });
+
 };
