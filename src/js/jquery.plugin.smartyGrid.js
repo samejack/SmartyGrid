@@ -1,5 +1,5 @@
 /*
- * jQuery SmartyGrid Plugin 1.3.1
+ * jQuery SmartyGrid Plugin 1.3.2
  *
  * @author sj
  * @link https://github.com/samejack/SmartyGrid
@@ -214,6 +214,9 @@ jQuery.fn.smartyGrid = function (args, params) {
             },
             afterRender: function (total, pageCode, pageSize) {
             },
+            beforeRender: function (config) {
+              return config;
+            },
             order: 'ASC',
             searchFields: [],
             sortFields: [],
@@ -257,18 +260,17 @@ jQuery.fn.smartyGrid = function (args, params) {
         this.renderHeader();
       } else if (typeof(args) === 'string' && args === 'render') {
         var config = $(this).data('SMARTY_GRID_CONFIG'), hashObj = this.getHash();
-        // run render command
-        if (hashObj === null) {
-          if (typeof(params) !== 'undefined' && !isNaN(params)) {
-            config.pageCode = parseInt(params, 10);
-          }
-          this.setHash(config);
-        } else {
-          if (typeof(params) !== 'undefined' && !isNaN(params)) {
-            hashObj.pageCode = parseInt(params, 10);
-          }
-          this.render();
+
+        // invoke before render
+        if (typeof(config.beforeRender) === 'function') {
+          config = config.beforeRender(config);
         }
+
+        // run render command
+        if (typeof(params) !== 'undefined' && !isNaN(params)) {
+          config.pageCode = parseInt(params, 10);
+        }
+        this.setHash(config);
       } else if (typeof(args) === 'string' && args === 'search') {
         var config = $(this).data('SMARTY_GRID_CONFIG');
         // run search command
@@ -650,8 +652,9 @@ jQuery.fn.smartyGrid = function (args, params) {
 
     this.render = function () {
       //load configuration
-      var config = $.extend($(this).data('SMARTY_GRID_CONFIG'), this.getHash()),
-        uri = config.uri + (config.appendQueryObj !== null && $.param(config.appendQueryObj).length > 0 ? '&' + $.param(config.appendQueryObj) : ''),
+      var config = $.extend($(this).data('SMARTY_GRID_CONFIG'), this.getHash());
+
+      var uri = config.uri + (config.appendQueryObj !== null && $.param(config.appendQueryObj).length > 0 ? '&' + $.param(config.appendQueryObj) : ''),
         apiCallback = config.apiCallback,
         parent = this,
         offset = null,
