@@ -277,7 +277,7 @@ jQuery.fn.smartyGrid = function (args, params) {
         if (typeof(params) !== 'string') {
           this.log('Search keyword not found. Second param not defined.');
         } else {
-          config.searchKeyword = params;
+          config.searchKeyword = params.trim();
           config.pageCode = 1;
           this.setHash(config);
         }
@@ -348,7 +348,7 @@ jQuery.fn.smartyGrid = function (args, params) {
       hashObject.pageSize = obj.pageSize;
 
       if (typeof(config.searchKeyword) === 'string' && config.searchFields.length > 0) {
-        hashObject.searchKeyword = obj.searchKeyword;
+        hashObject.searchKeyword = obj.searchKeyword.trim();
       } else {
         delete obj.searchKeyword;
       }
@@ -701,7 +701,7 @@ jQuery.fn.smartyGrid = function (args, params) {
         queryObject.search = {};
         for (index in config.searchFields) {
           if (config.searchFields.hasOwnProperty(index)) {
-            queryObject.search[config.searchFields[index]] = config.searchKeyword;
+            queryObject.search[config.searchFields[index]] = config.searchKeyword.trim();
           }
         }
       }
