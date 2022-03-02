@@ -52,7 +52,7 @@ Web service must return the JSON format (Web + Json = Good), Content-type = appl
 
 ### Version & Release Note
 
-1.0.0
+1.3.3
 
 ### License
 
