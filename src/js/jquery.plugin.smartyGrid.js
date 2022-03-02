@@ -1,10 +1,10 @@
 /*
- * jQuery SmartyGrid Plugin 1.3.2
+ * jQuery SmartyGrid Plugin 1.3.3
  *
  * @author sj
  * @link https://github.com/samejack/SmartyGrid
  * @copyright Copyright 2013 SJ
- * @version 1.0.0
+ * @version 1.3.3
  * @license Apache License Version 2.0 (https://github.com/samejack/SmartyGrid/blob/master/LICENSE)
  */
 jQuery.fn.smartyGrid = function (args, params) {
@@ -776,29 +776,41 @@ jQuery.fn.smartyGrid = function (args, params) {
       } else {
         //call ajax to get data
         //ajax call
-        $.getJSON(uri, queryObject, function (data) {
-          if (typeof(data) !== 'object') {
-            self.log('SmartyGrid WebService error: Return data not a JSON object.');
-          } else if (typeof(data.code) === 'undefined') {
-            self.log('SmartyGrid WebService format error. (code not found)');
-          } else if (data.code !== 0) {
-            if (typeof(config.ajaxErrorCallback) === 'function') {
-              config.ajaxErrorCallback(data);
+        $.ajax({
+          dataType: "json",
+          url: uri,
+          data: queryObject,
+          complete: function (jqXHR) {
+
+            if (typeof(jqXHR.responseJSON) !== 'object') {
+              self.log('SmartyGrid WebService error: Return data not a JSON.');
+              return;
             }
-          } else if (typeof(data.message) === 'undefined') {
-            self.log('SmartyGrid WebService format error. (message not found)');
-          } else if (typeof(data.data) === 'undefined') {
-            self.log('SmartyGrid WebService format error. (data not found)');
-          } else if (typeof(data.data.total) === 'undefined' || typeof(data.data.list) === 'undefined') {
-            self.log('SmartyGrid WebService data format error.');
-          } else {
-            // update total
-            config.total = parseInt(data.data.total, 10);
-            // render pager
-            parent.renderRows(config, data.data.list);
-            parent.renderPager(config);
-            if (typeof(config.afterRender) === 'function') {
-              config.afterRender(config.total, config.pageCode, config.pageSize);
+            var data = jqXHR.responseJSON;
+
+            if (typeof(data) !== 'object') {
+              self.log('SmartyGrid WebService error: Return data not a JSON object.');
+            } else if (typeof(data.code) === 'undefined') {
+              self.log('SmartyGrid WebService format error. (code not found)');
+            } else if (data.code !== 0) {
+              if (typeof(config.ajaxErrorCallback) === 'function') {
+                config.ajaxErrorCallback(data);
+              }
+            } else if (typeof(data.message) === 'undefined') {
+              self.log('SmartyGrid WebService format error. (message not found)');
+            } else if (typeof(data.data) === 'undefined') {
+              self.log('SmartyGrid WebService format error. (data not found)');
+            } else if (typeof(data.data.total) === 'undefined' || typeof(data.data.list) === 'undefined') {
+              self.log('SmartyGrid WebService data format error.');
+            } else {
+              // update total
+              config.total = parseInt(data.data.total, 10);
+              // render pager
+              parent.renderRows(config, data.data.list);
+              parent.renderPager(config);
+              if (typeof(config.afterRender) === 'function') {
+                config.afterRender(config.total, config.pageCode, config.pageSize);
+              }
             }
           }
         });
