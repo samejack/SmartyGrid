@@ -750,7 +750,7 @@ jQuery.fn.smartyGrid = function (args, params) {
         this.renderRows(config, data);
         this.renderPager(config);
         if (typeof(config.afterRender) === 'function') {
-          config.afterRender(config.total, config.pageCode, config.pageSize);
+          config.afterRender(config.total, data, config.pageCode, config.pageSize);
         }
       } else if (typeof(apiCallback) === 'function') {
         apiCallback(
@@ -766,7 +766,7 @@ jQuery.fn.smartyGrid = function (args, params) {
                 parent.renderRows(config, list);
                 parent.renderPager(config);
                 if (typeof(config.afterRender) === 'function') {
-                  config.afterRender(config.total, config.pageCode, config.pageSize);
+                  config.afterRender(config.total, list, config.pageCode, config.pageSize);
                 }
               }
             };
