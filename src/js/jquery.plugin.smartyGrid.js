@@ -212,7 +212,7 @@ jQuery.fn.smartyGrid = function (args, params) {
             ajaxErrorCallback: function (json) {
               self.log('SmartyGrid WebService error: ' + json.message + ' (' + json.code + ')');
             },
-            afterRender: function (total, pageCode, pageSize) {
+            afterRender: function (total, pageCode, pageSize, reponse) {
             },
             beforeRender: function (config) {
               return config;
@@ -750,13 +750,12 @@ jQuery.fn.smartyGrid = function (args, params) {
         this.renderRows(config, data);
         this.renderPager(config);
         if (typeof(config.afterRender) === 'function') {
-          config.afterRender(config.total, data, config.pageCode, config.pageSize);
+          config.afterRender(config.total, data, config.pageCode, config.pageSize, {data: config.data});
         }
       } else if (typeof(apiCallback) === 'function') {
         apiCallback(
           (function () {
-            return function (total, list) {
-              console.log(total, list);
+            return function (total, list, data) {
               if (typeof(total) === 'undefined' || typeof(list) === 'undefined') {
                 self.log('SmartyGrid WebService data format error.');
               } else {
@@ -766,7 +765,7 @@ jQuery.fn.smartyGrid = function (args, params) {
                 parent.renderRows(config, list);
                 parent.renderPager(config);
                 if (typeof(config.afterRender) === 'function') {
-                  config.afterRender(config.total, list, config.pageCode, config.pageSize);
+                  config.afterRender(config.total, list, config.pageCode, config.pageSize, {data: data});
                 }
               }
             };
@@ -809,7 +808,7 @@ jQuery.fn.smartyGrid = function (args, params) {
               parent.renderRows(config, data.data.list);
               parent.renderPager(config);
               if (typeof(config.afterRender) === 'function') {
-                config.afterRender(config.total, config.pageCode, config.pageSize);
+                config.afterRender(config.total, data.data.list, config.pageCode, config.pageSize, data);
               }
             }
           }
