@@ -405,7 +405,12 @@ jQuery.fn.smartyGrid = function (args, params) {
           if (typeof(columns[i].tableHeadThHtml) === 'string') {
             tableHeadThHtml = columns[i].tableHeadThHtml;
           }
-          if (columns[i].title === 'HIDDEN') {
+          if (columns[i].renderHeader && typeof(columns[i].renderHeader) === 'function') {
+            html = columns[i].renderHeader();
+            $(this).find('thead tr:first').append(html);
+            $(this).find('thead tr th:last').addClass('smarty-grid-th-' + i);
+            continue;
+          } else if (columns[i].title === 'HIDDEN') {
             continue;
           } else if (columns[i].title === 'CHECKBOX') {
             // render checkbox selector
