@@ -50,10 +50,6 @@ Web service must return the JSON format (Web + Json = Good), Content-type = appl
 * Bootstrap 2
 * Bootstrap 3
 
-### Version & Release Note
-
-1.3.3
-
 ### License
 
 Apache License Version 2.0
