@@ -1,3 +1,5 @@
+[![npm version](https://badge.fury.io/js/SmartyGrid.svg)](https://badge.fury.io/js/SmartyGrid)
+
 SmartyGrid
 ==========
 
