@@ -1,10 +1,10 @@
 /*
- * jQuery SmartyGrid Plugin 1.3.3
+ * jQuery SmartyGrid Plugin
  *
  * @author sj
  * @link https://github.com/samejack/SmartyGrid
  * @copyright Copyright 2013 SJ
- * @version 1.3.3
+ * @version 1.3.4
  * @license Apache License Version 2.0 (https://github.com/samejack/SmartyGrid/blob/master/LICENSE)
  */
 jQuery.fn.smartyGrid = function (args, params) {
@@ -405,16 +405,15 @@ jQuery.fn.smartyGrid = function (args, params) {
           if (typeof(columns[i].tableHeadThHtml) === 'string') {
             tableHeadThHtml = columns[i].tableHeadThHtml;
           }
-          if (columns[i].renderHeader && typeof(columns[i].renderHeader) === 'function') {
-            html = columns[i].renderHeader();
-            $(this).find('thead tr:first').append(html);
-            $(this).find('thead tr th:last').addClass('smarty-grid-th-' + i);
+          if (columns[i].type === 'HIDDEN') {
             continue;
-          } else if (columns[i].title === 'HIDDEN') {
-            continue;
-          } else if (columns[i].title === 'CHECKBOX') {
+          } else if (columns[i].type === 'CHECKBOX') {
             // render checkbox selector
-            html = tableHeadThHtml + config.checkBoxHtml + '</th>';
+            if (columns[i].renderHeader && typeof(columns[i].renderHeader) === 'function') {
+              html = columns[i].renderHeader();
+            } else {
+              html = tableHeadThHtml + config.checkBoxHtml + '</th>';
+            }
             $(this).find('thead tr:first').append(html);
             $(this).find('thead tr th:last').addClass('smarty-grid-th-' + i);
             $('.smarty-grid-checkbox-all').click(function () {
@@ -424,6 +423,11 @@ jQuery.fn.smartyGrid = function (args, params) {
                 $('.smarty-grid-checkbox').prop('checked', true);
               }
             });
+            continue;
+          } else if (columns[i].renderHeader && typeof(columns[i].renderHeader) === 'function') {
+            html = columns[i].renderHeader();
+            $(this).find('thead tr:first').append(html);
+            $(this).find('thead tr th:last').addClass('smarty-grid-th-' + i);
             continue;
           } else {
             html = tableHeadThHtml + columns[i].title;
@@ -606,7 +610,7 @@ jQuery.fn.smartyGrid = function (args, params) {
                 value = model[i][columns[j].index];
               }
 
-              if (columns[j].title === 'CHECKBOX') {
+              if (columns[j].type === 'CHECKBOX') {
                 // render check box
                 if (columns[j].render !== undefined && typeof(columns[j].render) === 'function') {
                   html += columns[j].render(value, model[i], columns[j], i);
@@ -827,3 +831,4 @@ jQuery.fn.smartyGrid = function (args, params) {
   });
 
 };
+

@@ -1,6 +1,6 @@
 {
   "name": "SmartyGrid",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "description": "SmartyGrid is a jQuery plugin and provides a user interface component to build table grid quickly.",
   "directories": {
     "example": "example"
