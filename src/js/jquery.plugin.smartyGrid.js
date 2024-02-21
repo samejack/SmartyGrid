@@ -4,7 +4,7 @@
  * @author sj
  * @link https://github.com/samejack/SmartyGrid
  * @copyright Copyright 2013 SJ
- * @version 1.3.4
+ * @version 1.3.5
  * @license Apache License Version 2.0 (https://github.com/samejack/SmartyGrid/blob/master/LICENSE)
  */
 jQuery.fn.smartyGrid = function (args, params) {
@@ -405,102 +405,109 @@ jQuery.fn.smartyGrid = function (args, params) {
           if (typeof(columns[i].tableHeadThHtml) === 'string') {
             tableHeadThHtml = columns[i].tableHeadThHtml;
           }
+
+          var sortHtml = '';
+          if (columns[i].sortable) {
+            sortHtml += '<span class="sort-icon" style="cursor: pointer;">';
+            if (typeof(config.sortFields) === 'object') {
+              var found = false;
+              for (var j in config.sortFields) {
+                if (typeof(config.sortFields[j]) === 'string') {
+                  if (typeof(columns[i].index) === 'string'
+                    && config.sortFields[j] === columns[i].index
+                  ) {
+                    found = true;
+                  } else if (typeof(columns[i].index) === 'object') {
+                    for (var k in columns[i].index) {
+                      if (config.sortFields[j] === columns[i].index[k]) {
+                        found = true;
+                      }
+                    }
+                  }
+                }
+              }
+              if (!found) {
+                sortHtml += config.sortDefaultHtml;
+              } else {
+                if (config.order === 'ASC') {
+                  sortHtml += config.sortUpHtml;
+                } else {
+                  sortHtml += config.sortDownHtml;
+                }
+              }
+            }
+            sortHtml += '</span>';
+          }
+
           if (columns[i].type === 'HIDDEN') {
             continue;
           } else if (columns[i].type === 'CHECKBOX') {
             // render checkbox selector
             if (columns[i].renderHeader && typeof(columns[i].renderHeader) === 'function') {
-              html = columns[i].renderHeader();
+              html = columns[i].renderHeader(sortHtml);
             } else {
               html = tableHeadThHtml + config.checkBoxHtml + '</th>';
             }
             $(this).find('thead tr:first').append(html);
             $(this).find('thead tr th:last').addClass('smarty-grid-th-' + i);
-            $('.smarty-grid-checkbox-all').click(function () {
+            $('.smarty-grid-checkbox-all').click(function (event) {
               if (typeof($(this).prop('checked')) === 'undefined' || $(this).prop('checked') === false || $(this).prop('checked') === null) {
                 $('.smarty-grid-checkbox').prop('checked', false);
               } else {
                 $('.smarty-grid-checkbox').prop('checked', true);
               }
+              event.stopPropagation();
             });
-            continue;
           } else if (columns[i].renderHeader && typeof(columns[i].renderHeader) === 'function') {
-            html = columns[i].renderHeader();
+            html = columns[i].renderHeader(sortHtml);
             $(this).find('thead tr:first').append(html);
             $(this).find('thead tr th:last').addClass('smarty-grid-th-' + i);
-            continue;
           } else {
             html = tableHeadThHtml + columns[i].title;
-            if (columns[i].sortable) {
-              html += '<span class="sort-icon">';
-              if (typeof(config.sortFields) === 'object') {
-                var found = false;
-                for (var j in config.sortFields) {
-                  if (typeof(config.sortFields[j]) === 'string') {
-                    if (typeof(columns[i].index) === 'string'
-                      && config.sortFields[j] === columns[i].index
-                    ) {
-                      found = true;
-                    } else if (typeof(columns[i].index) === 'object') {
-                      for (var k in columns[i].index) {
-                        if (config.sortFields[j] === columns[i].index[k]) {
-                          found = true;
-                        }
-                      }
-                    }
-                  }
-                }
-                if (!found) {
-                  html += config.sortDefaultHtml;
-                } else {
-                  if (config.order === 'ASC') {
-                    html += config.sortUpHtml;
-                  } else {
-                    html += config.sortDownHtml;
-                  }
-                }
-              }
-              html += '</span>';
-            }
-            html += '</th>';
+            html += sortHtml + '</th>';
+
             $(this).find('thead tr:first').append(html);
+            
+          }
+
+          // bind sort event
+          if (columns[i].sortable) {
+
             th = $(this).find('thead tr th:last');
             th.addClass('smarty-grid-th-' + i);
             th.data('index', columns[i].index);
 
-            // bind sort event
-            if (columns[i].sortable) {
-              // save index value
-              $('smarty-grid-th-' + i + ' .sort-icon').data('index', columns[i].index);
-              th.click(function () {
-                var config = $(this).parents('table').parent().data('SMARTY_GRID_CONFIG'),
-                  thIndex = $(this).data('index'),
-                  hashObj;
+            // save index value
+            $('smarty-grid-th-' + i + ' .sort-icon').data('index', columns[i].index);
+            th.click(function () {
+              var config = $(this).parents('table').parent().data('SMARTY_GRID_CONFIG'),
+                thIndex = $(this).data('index'),
+                hashObj;
 
-                // reset all sort icon
-                $(this).parent().find('.sort-icon').html(config.sortDefaultHtml);
+              // reset all sort icon
+              $(this).parent().find('.sort-icon').html(config.sortDefaultHtml);
 
-                if (config.order === 'ASC') {
-                  config.order = 'DESC';
-                  $(this).find('.sort-icon').html(config.sortDownHtml);
-                } else {
-                  config.order = 'ASC';
-                  $(this).find('.sort-icon').html(config.sortUpHtml);
-                }
+              if (config.order === 'ASC') {
+                config.order = 'DESC';
+                $(this).find('.sort-icon').html(config.sortDownHtml);
+              } else {
+                config.order = 'ASC';
+                $(this).find('.sort-icon').html(config.sortUpHtml);
+              }
 
-                hashObj = self.getHash();
-                hashObj.order = config.order;
+              hashObj = self.getHash();
+              hashObj.order = config.order;
 
-                if (typeof(thIndex) === 'string') {
-                  hashObj.sortFields = [thIndex];
-                } else if (typeof(thIndex) === 'object' && typeof(thIndex[0]) === 'string') {
-                  hashObj.sortFields = [thIndex[0]];
-                }
+              if (typeof(thIndex) === 'string') {
+                hashObj.sortFields = [thIndex];
+              } else if (typeof(thIndex) === 'object' && typeof(thIndex[0]) === 'string') {
+                hashObj.sortFields = [thIndex[0]];
+              }
 
-                self.setHash(hashObj);
-              });
-            }
+              self.setHash(hashObj);
+            });
           }
+
         }
       }
     };
