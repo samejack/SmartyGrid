@@ -4,7 +4,7 @@
  * @author sj
  * @link https://github.com/samejack/SmartyGrid
  * @copyright Copyright 2013 SJ
- * @version 1.3.5
+ * @version 1.3.6
  * @license Apache License Version 2.0 (https://github.com/samejack/SmartyGrid/blob/master/LICENSE)
  */
 jQuery.fn.smartyGrid = function (args, params) {
@@ -670,7 +670,7 @@ jQuery.fn.smartyGrid = function (args, params) {
       //load configuration
       var config = $.extend($(this).data('SMARTY_GRID_CONFIG'), this.getHash());
 
-      var uri = config.uri + (config.appendQueryObj !== null && $.param(config.appendQueryObj).length > 0 ? '&' + $.param(config.appendQueryObj) : ''),
+      var uri = config.uri + (config.uri.indexOf('?') === -1 ? '?' : '') + (config.appendQueryObj !== null && $.param(config.appendQueryObj).length > 0 ? '&' + $.param(config.appendQueryObj) : ''),
         apiCallback = config.apiCallback,
         parent = this,
         offset = null,
@@ -838,4 +838,3 @@ jQuery.fn.smartyGrid = function (args, params) {
   });
 
 };
-
