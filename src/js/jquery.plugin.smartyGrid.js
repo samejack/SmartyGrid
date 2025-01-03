@@ -598,6 +598,7 @@ jQuery.fn.smartyGrid = function (args, params) {
     this.renderRows = function (config, model) {
       var columns = config.columns, html = '', value, i, j, k, string = '', arr = [];
       $(this).find('tbody').children().remove();
+      $(this).data('SMARTY_GRID_ROWS', model);
       for (i in model) {
         if (model.hasOwnProperty(i)) {
           html = config.tableBodyTrHtml;
