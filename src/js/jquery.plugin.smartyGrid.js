@@ -55,6 +55,7 @@ jQuery.fn.smartyGrid = function (args, params) {
         tableHeadHtml: '<thead>',
         tableHeadTrHtml: '<tr>',
         tableHeadThHtml: '<th>',
+        tableCheckBoxThHtml: '<th width="6">',
         tableBodyHtml: '<tbody>',
         tableBodyTrHtml: '<tr>',
         tableBodyTdHtml: '<td>',
@@ -104,6 +105,7 @@ jQuery.fn.smartyGrid = function (args, params) {
         tableHeadHtml: '<thead>',
         tableHeadTrHtml: '<tr>',
         tableHeadThHtml: '<th style="white-space: nowrap;">',
+        tableCheckBoxThHtml: '<th width="6">',
         tableBodyHtml: '<tbody>',
         tableBodyTrHtml: '<tr>',
         tableBodyTdHtml: '<td>',
@@ -153,6 +155,7 @@ jQuery.fn.smartyGrid = function (args, params) {
         tableHeadHtml: '<thead>',
         tableHeadTrHtml: '<tr>',
         tableHeadThHtml: '<th style="white-space: nowrap;">',
+        tableCheckBoxThHtml: '<th width="6">',
         tableBodyHtml: '<tbody>',
         tableBodyTrHtml: '<tr>',
         tableBodyTdHtml: '<td>',
@@ -405,6 +408,10 @@ jQuery.fn.smartyGrid = function (args, params) {
           if (typeof(columns[i].tableHeadThHtml) === 'string') {
             tableHeadThHtml = columns[i].tableHeadThHtml;
           }
+          var tableCheckBoxThHtml = config.tableCheckBoxThHtml;
+          if (typeof(columns[i].tableCheckBoxThHtml) === 'string') {
+            tableCheckBoxThHtml = columns[i].tableCheckBoxThHtml;
+          }
 
           var sortHtml = '';
           if (columns[i].sortable) {
@@ -446,7 +453,7 @@ jQuery.fn.smartyGrid = function (args, params) {
             if (columns[i].renderHeader && typeof(columns[i].renderHeader) === 'function') {
               html = columns[i].renderHeader(sortHtml);
             } else {
-              html = tableHeadThHtml + config.checkBoxHtml + '</th>';
+              html = tableCheckBoxThHtml + config.checkBoxHtml + '</th>';
             }
             $(this).find('thead tr:first').append(html);
             $(this).find('thead tr th:last').addClass('smarty-grid-th-' + i);
