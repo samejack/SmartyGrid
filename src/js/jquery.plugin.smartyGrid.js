@@ -4,7 +4,7 @@
  * @author sj
  * @link https://github.com/samejack/SmartyGrid
  * @copyright Copyright 2013 SJ
- * @version 1.3.6
+ * @version 1.3.7
  * @license Apache License Version 2.0 (https://github.com/samejack/SmartyGrid/blob/master/LICENSE)
  */
 jQuery.fn.smartyGrid = function (args, params) {
@@ -59,7 +59,8 @@ jQuery.fn.smartyGrid = function (args, params) {
         tableBodyHtml: '<tbody>',
         tableBodyTrHtml: '<tr>',
         tableBodyTdHtml: '<td>',
-        pagerHtml: '<div class="smarty-grid-pager"></div>',
+        pagerHtml: '<div class="btn-group smarty-grid-pager row"></div>',
+        sizerHtml: '<select class="smarty-grid-size" style="margin: 3px 0;"><option value="10">10</option><option value="20">20</option><option value="50">50</option><option value="100">100</option><option value="200">200</option></select>',
         pagerPrevHtml: function (href) {
           if (href !== false) {
             return '<span><a href=\'' + href + '\'>&laquo;</a></span>';
@@ -110,6 +111,7 @@ jQuery.fn.smartyGrid = function (args, params) {
         tableBodyTrHtml: '<tr>',
         tableBodyTdHtml: '<td>',
         pagerHtml: '<div class="pagination pagination-centered"><ul class="smarty-grid-pager"></ul></div>',
+        sizerHtml: '<select class="smarty-grid-size" style="margin: 3px 0;"><option value="10">10</option><option value="20">20</option><option value="50">50</option><option value="100">100</option><option value="200">200</option></select>',
         pagerPrevHtml: function (href) {
           if (href !== false) {
             return '<li><a href=\'' + href + '\'>&laquo;</a></li>';
@@ -159,7 +161,8 @@ jQuery.fn.smartyGrid = function (args, params) {
         tableBodyHtml: '<tbody>',
         tableBodyTrHtml: '<tr>',
         tableBodyTdHtml: '<td>',
-        pagerHtml: '<div class="btn-group smarty-grid-pager"></div>',
+        pagerHtml: '<div style="width: 100%; float: right;"><span class="btn-group smarty-grid-pager"></span><span style="float: right;" class="smarty-grid-sizer"></span></div>',
+        sizerHtml: '<select class="smarty-grid-size" style="margin: 3px 0;"><option value="10">10</option><option value="20">20</option><option value="50">50</option><option value="100">100</option><option value="200">200</option></select>',
         pagerPrevHtml: function (href) {
           if (href !== false) {
             return '<a class="btn btn-default" href=\'' + href + '\'>&laquo;</a>';
@@ -390,18 +393,19 @@ jQuery.fn.smartyGrid = function (args, params) {
 
       // remove grid children and make header
       $(this).children().remove();
-      $(this).append(
-        config.tableHtml +
-          config.tableHeadHtml +
-          config.tableHeadTrHtml +
-          '</tr></thead>' +
-          config.tableBodyHtml +
-          '</tbody></table>'
-      );
+      var tableHtml = config.tableHtml +
+        config.tableHeadHtml +
+        config.tableHeadTrHtml +
+        '</tr></thead>' +
+        config.tableBodyHtml +
+        '</tbody><tfoot>' + 
+        '</tfoot></table>';
+      $(this).append(tableHtml);
+
       if (config.pager) {
         $(this).append(config.pagerHtml);
       }
-
+        
       for (i in columns) {
         if (columns.hasOwnProperty(i)) {
           var tableHeadThHtml = config.tableHeadThHtml;
@@ -523,6 +527,7 @@ jQuery.fn.smartyGrid = function (args, params) {
     this.renderPager = function (config) {
       var i, start, end, html = '', first = 1, last = Math.ceil(config.total / config.pageSize), hashObj;
 
+      // remove all page button
       $(this).find(config.pagerQuery).children().remove();
 
       if (config.pager && typeof(config.total) !== 'undefined') {
@@ -581,7 +586,21 @@ jQuery.fn.smartyGrid = function (args, params) {
           html += config.pagerEndHtml('#' + JSON.stringify(hashObj));
         }
 
-        $(this).find('.smarty-grid-pager').append(html);
+        $(this).find('.smarty-grid-pager').html(html);
+
+        $(this).find('.smarty-grid-sizer').html(config.sizerHtml);
+
+        var findSelectOption = $('.smarty-grid-size option[value="' + config.pageSize + '"]');
+        if (findSelectOption.size() === 0) {
+          // hide
+          $('.smarty-grid-size').append('<option value="' + config.pageSize + '">' + config.pageSize + '</option>');
+        }
+        $('.smarty-grid-size').val(config.pageSize);
+
+        $('.smarty-grid-size').change(function () {
+          config.pageSize = $(this).val();
+          self.setHash(config);
+        });
 
       } else {
         $(this).find('.smarty-grid-pager').hide();
