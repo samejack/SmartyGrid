@@ -4,7 +4,7 @@
  * @author sj
  * @link https://github.com/samejack/SmartyGrid
  * @copyright Copyright 2013 SJ
- * @version 1.3.7
+ * @version 1.4.0
  * @license Apache License Version 2.0 (https://github.com/samejack/SmartyGrid/blob/master/LICENSE)
  */
 jQuery.fn.smartyGrid = function (args, params) {
@@ -225,6 +225,7 @@ jQuery.fn.smartyGrid = function (args, params) {
             },
             order: 'ASC',
             searchFields: [],
+            searchElement: null,
             sortFields: [],
             searchKeyword: undefined,
             ajaxParams: {},
@@ -280,7 +281,12 @@ jQuery.fn.smartyGrid = function (args, params) {
       } else if (typeof(args) === 'string' && args === 'search') {
         var config = $(this).data('SMARTY_GRID_CONFIG');
         // run search command
-        if (typeof(params) !== 'string') {
+        if (typeof(params) === 'undefined' && config.searchElement) {
+          // auto get search keyword from html input DOM
+          config.searchKeyword = $(config.searchElement).val();
+          config.pageCode = 1;
+          this.setHash(config);
+        } else if (!config.searchElement && typeof(params) !== 'string') {
           this.log('Search keyword not found. Second param not defined.');
         } else {
           config.searchKeyword = params.trim();
@@ -520,6 +526,11 @@ jQuery.fn.smartyGrid = function (args, params) {
           }
 
         }
+      }
+
+      // auto fill search keyword
+      if (config.searchElement && config.searchKeyword && typeof(config.searchKeyword) === 'string' && config.searchKeyword.length > 0) {
+        $(config.searchElement).val(config.searchKeyword);
       }
     };
 
