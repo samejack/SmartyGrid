@@ -4,7 +4,7 @@
  * @author sj
  * @link https://github.com/samejack/SmartyGrid
  * @copyright Copyright 2013 SJ
- * @version 1.4.0
+ * @version 1.4.1
  * @license Apache License Version 2.0 (https://github.com/samejack/SmartyGrid/blob/master/LICENSE)
  */
 jQuery.fn.smartyGrid = function (args, params) {
@@ -60,7 +60,7 @@ jQuery.fn.smartyGrid = function (args, params) {
         tableBodyTrHtml: '<tr>',
         tableBodyTdHtml: '<td>',
         pagerHtml: '<div class="btn-group smarty-grid-pager row"></div>',
-        sizerHtml: '<select class="smarty-grid-size" style="margin: 3px 0;"><option value="10">10</option><option value="20">20</option><option value="50">50</option><option value="100">100</option><option value="200">200</option></select>',
+        sizerHtml: '<select class="smarty-grid-size" style="margin: 3px 0;"><option value="10">10</option><option value="20">20</option><option value="30">30</option><option value="50">50</option><option value="100">100</option><option value="200">200</option></select>',
         pagerPrevHtml: function (href) {
           if (href !== false) {
             return '<span><a href=\'' + href + '\'>&laquo;</a></span>';
@@ -111,7 +111,7 @@ jQuery.fn.smartyGrid = function (args, params) {
         tableBodyTrHtml: '<tr>',
         tableBodyTdHtml: '<td>',
         pagerHtml: '<div class="pagination pagination-centered"><ul class="smarty-grid-pager"></ul></div>',
-        sizerHtml: '<select class="smarty-grid-size" style="margin: 3px 0;"><option value="10">10</option><option value="20">20</option><option value="50">50</option><option value="100">100</option><option value="200">200</option></select>',
+        sizerHtml: '<select class="smarty-grid-size" style="margin: 3px 0;"><option value="10">10</option><option value="20">20</option><option value="30">30</option><option value="50">50</option><option value="100">100</option><option value="200">200</option></select>',
         pagerPrevHtml: function (href) {
           if (href !== false) {
             return '<li><a href=\'' + href + '\'>&laquo;</a></li>';
@@ -162,7 +162,7 @@ jQuery.fn.smartyGrid = function (args, params) {
         tableBodyTrHtml: '<tr>',
         tableBodyTdHtml: '<td>',
         pagerHtml: '<div style="width: 100%; float: right;"><span class="btn-group smarty-grid-pager"></span><span style="float: right;" class="smarty-grid-sizer"></span></div>',
-        sizerHtml: '<select class="smarty-grid-size" style="margin: 3px 0;"><option value="10">10</option><option value="20">20</option><option value="50">50</option><option value="100">100</option><option value="200">200</option></select>',
+        sizerHtml: '<select class="smarty-grid-size" style="margin: 3px 0;"><option value="10">10</option><option value="20">20</option><option value="30">30</option><option value="50">50</option><option value="100">100</option><option value="200">200</option></select>',
         pagerPrevHtml: function (href) {
           if (href !== false) {
             return '<a class="btn btn-default" href=\'' + href + '\'>&laquo;</a>';
